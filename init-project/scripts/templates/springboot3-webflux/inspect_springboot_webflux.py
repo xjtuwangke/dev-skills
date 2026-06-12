@@ -4,87 +4,32 @@
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
-from typing import Any
+
+from inspectors.common import java_files
+from inspectors.config import inspect_config
+from inspectors.endpoint import inspect_endpoints
+from inspectors.java_summary import inspect_java_summary
+from inspectors.persistence import inspect_persistence
+from inspectors.pubsub import inspect_pubsub
+from inspectors.service import inspect_services
+from inspectors.tests import inspect_tests
 
 
-IGNORED_DIRS = {".git", ".idea", ".gradle", "build", "target"}
-
-
-def visible(path: Path) -> bool:
-    return not any(part in IGNORED_DIRS for part in path.parts)
-
-
-def rel(path: Path, root: Path) -> str:
-    try:
-        return str(path.relative_to(root))
-    except ValueError:
-        return str(path)
-
-
-def read_text(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        return path.read_text(errors="ignore")
-
-
-def java_files(root: Path) -> list[Path]:
-    return [path for path in root.rglob("*.java") if visible(path)]
-
-
-def sample_matches(files: list[Path], root: Path, patterns: tuple[str, ...], limit: int = 20) -> list[str]:
-    matches = []
-    for path in files:
-        text = read_text(path)
-        if any(pattern in text for pattern in patterns):
-            matches.append(rel(path, root))
-            if len(matches) >= limit:
-                break
-    return matches
-
-
-def package_roots(files: list[Path]) -> list[str]:
-    packages = set()
-    for path in files[:200]:
-        match = re.search(r"^\s*package\s+([A-Za-z0-9_.]+)\s*;", read_text(path), re.M)
-        if match:
-            parts = match.group(1).split(".")
-            packages.add(".".join(parts[: min(3, len(parts))]))
-    return sorted(packages)
-
-
-def inspect(root: Path) -> dict[str, Any]:
+def inspect(root: Path) -> dict:
     files = java_files(root)
-    configs = [
-        rel(path, root)
-        for pattern in ("application*.yml", "application*.yaml", "application*.properties")
-        for path in root.rglob(pattern)
-        if visible(path)
-    ]
-
-    return {
+    result = {
         "root": str(root),
-        "application_classes": sample_matches(files, root, ("@SpringBootApplication",)),
-        "controllers_or_handlers": sample_matches(
-            files,
-            root,
-            ("@RestController", "@Controller", "RouterFunction<", "ServerRequest", "ServerResponse"),
-        ),
-        "web_clients": sample_matches(files, root, ("WebClient", "HttpClient", "RestClient"), 20),
-        "reactive_sources": sample_matches(files, root, ("Mono<", "Flux<", "reactor.core.publisher"), 30),
-        "configuration_properties": sample_matches(
-            files,
-            root,
-            ("@ConfigurationProperties", "@Value(", "@Profile", "@Bean"),
-            30,
-        ),
-        "webflux_tests": sample_matches(files, root, ("WebTestClient", "StepVerifier", "@SpringBootTest"), 30),
-        "package_roots": package_roots(files),
-        "application_configs": sorted(configs),
     }
+    result.update(inspect_java_summary(root, files))
+    result.update(inspect_config(root))
+    result.update(inspect_endpoints(root, files))
+    result.update(inspect_services(root, files))
+    result.update(inspect_persistence(root, files))
+    result.update(inspect_pubsub(root, files))
+    result.update(inspect_tests(root, files))
+    return result
 
 
 def main(argv: list[str]) -> int:

@@ -45,7 +45,51 @@ After `springboot3-webflux` matches, use the static inspector to collect service
 python3 /path/to/init-project/scripts/templates/springboot3-webflux/inspect_springboot_webflux.py /path/to/project
 ```
 
-It emits JSON for application classes, controllers/handlers, WebClient usage, Reactor sources, configuration/property classes, WebFlux tests, package roots, and application config files. Use this output to refine `PROJECT_PROFILE.md`, `ARCHITECTURE_NOTES.md`, `BUILD_AND_TEST.md`, and `TEMPLATE_NOTES.md`.
+The top-level inspector is intentionally only an orchestrator. Keep extraction
+logic split by technology point under
+`scripts/templates/springboot3-webflux/inspectors/`:
+
+```text
+inspectors/
+  java_summary.py   # application classes, package roots, WebFlux/reactive clues
+  endpoint.py       # HTTP mappings and handler signatures
+  service.py        # @Service classes, public methods, constructor collaborators
+  persistence.py    # Spring Data repositories, JPA entities/tables, migrations
+  config.py         # application*.yml profiles, env vars, topic hints
+  pubsub.py         # Pub/Sub publishers, gateways, adapters
+  tests.py          # WebTestClient, StepVerifier, Mockito, Spring test clues
+```
+
+When adding new Spring backend extraction, add a focused inspector module for
+that concern instead of growing `inspect_springboot_webflux.py`. Examples:
+`security.py`, `scheduler.py`, `r2dbc.py`, `kafka.py`, or `openapi.py`.
+
+It emits JSON for application classes, controllers/handlers, WebClient usage,
+Reactor sources, configuration/property classes, WebFlux tests, package roots,
+application config files, profile names, environment variable placeholders,
+HTTP endpoint mappings, services and constructor collaborators, Spring Data
+repositories, JPA/Hibernate entities and tables, Flyway migrations, Pub/Sub
+classes/topic hints, and test catalogs. Use this output to refine
+`PROJECT_PROFILE.md`, `PROJECT_EVIDENCE.md`, `BACKEND_SURFACES.md`,
+`CALL_CHAINS.md`, `ARCHITECTURE_NOTES.md`, `BUILD_AND_TEST.md`, and
+`TEMPLATE_NOTES.md`.
+
+For backend projects, the renderer also creates reference-first context:
+
+```text
+agents/REFERENCES.md
+agents/references/technical/
+agents/references/business/
+agents/SUBAGENTS.md
+agents/subagents/*.md
+agents/workflows/BACKEND_ANALYSIS.md
+.codex/agents/*.toml
+.opencode/agents/*.md
+.github/agents/*.agent.md
+```
+
+Keep reusable project facts in `agents/references/`. Keep role behavior in
+`agents/subagents/`. Keep tool-specific permissions in thin wrappers only.
 
 ## AGENTS.md Guidance
 
@@ -72,6 +116,21 @@ Capture:
 - Important external integrations: databases, message brokers, HTTP clients, auth, service discovery.
 - Runtime assumptions: ports, profiles, required env vars.
 
+For Boot API services with enough evidence, also create
+`agents/REFERENCES.md`, focused technical/business reference files,
+`agents/BACKEND_SURFACES.md`, and `agents/CALL_CHAINS.md` so the root
+`AGENTS.md` can stay thin while still routing future agents to endpoint,
+service, persistence, Pub/Sub, migration, and business-context facts.
+
+Default strategy:
+
+- Narrow task: read `AGENTS.md`, `agents/REFERENCES.md`, one focused reference,
+  then inspect the relevant source files.
+- Broad or risky task: use `agents/workflows/BACKEND_ANALYSIS.md` and specialist
+  subagents when the current tool supports them.
+- Subagents cost extra context and merge work; use them for independent
+  cross-surface review, not for every edit.
+
 ## BUILD_AND_TEST.md Content
 
 Add service commands when supported by the repo:
@@ -80,6 +139,8 @@ Add service commands when supported by the repo:
 ./mvnw spring-boot:run
 ./mvnw test
 ./mvnw -Dtest=SomeWebFluxTest test
+./mvnw checkstyle:check
+./mvnw test jacoco:report
 ```
 
 If integration tests require external services, profiles, Docker Compose, or Testcontainers, document the safe quick command separately from the full CI command.
@@ -137,6 +198,8 @@ Add project-specific notes:
 ## Common Risks
 - Accidentally adding servlet MVC dependencies to a WebFlux service.
 - Introducing blocking calls on event-loop threads.
+- Treating a WebFlux + Hibernate/JPA service as fully non-blocking. If JPA is
+  present, document where blocking repository work is isolated.
 - Changing API serialization/deserialization without updating tests.
 - Adding config that works locally but fails in CI because env vars are undocumented.
 ```

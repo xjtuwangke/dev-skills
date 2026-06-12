@@ -109,6 +109,13 @@ Template-specific scripts live under `scripts/templates/{template-id}/`. Use the
 python3 /path/to/init-project/scripts/templates/maven-java/inspect_maven_project.py /path/to/project
 ```
 
+Keep template inspectors modular. When a template needs more extraction depth,
+split logic by technology point under that template's script directory instead
+of building one large Python file. For Spring Boot WebFlux, the top-level
+`inspect_springboot_webflux.py` should orchestrate focused modules such as
+endpoint, service, persistence, config, pub/sub, tests, and Java summary
+inspectors.
+
 If dependency analysis is relevant, the `maven-java` template also provides:
 
 ```bash
@@ -129,7 +136,15 @@ python3 /path/to/init-project/scripts/render_agents_docs.py /path/to/project \
   --template springboot3-webflux
 ```
 
-The renderer writes conservative drafts for `AGENTS.md` and `agents/*.md` using detected or explicit facets and structured template inspection. It always includes `baseline`, skips existing files unless `--overwrite` is passed, and can accept comma-separated templates such as `--template maven-java,springboot3-webflux`. After rendering, read the created files and refine them with project-specific facts from the matching template references.
+The renderer writes conservative drafts for `AGENTS.md`, `agents/*.md`, focused reference files, and optional tool-specific subagent wrappers using detected or explicit facets and structured template inspection. It always includes `baseline`, skips existing files unless `--overwrite` is passed, and can accept comma-separated templates such as `--template maven-java,springboot3-webflux`. After rendering, read the created files and refine them with project-specific facts from the matching template references.
+
+For Spring Boot backend projects, use reference-first progressive disclosure by
+default. `AGENTS.md` should route future agents to `agents/REFERENCES.md` and
+focused technical/business references. Use subagents only for broad, risky,
+ambiguous, or cross-surface work where independent parallel review is worth the
+extra elapsed time and token cost. Do not rely on `AGENTS.md` to configure
+subagents for every tool; generate native thin wrappers for tools that support
+them and keep reusable project context in `agents/references/`.
 
 ### 4. Create Or Update Agent Files
 
@@ -138,12 +153,17 @@ Default output layout:
 ```text
 AGENTS.md
 agents/
+  REFERENCES.md
   PROJECT_PROFILE.md
+  PROJECT_EVIDENCE.md
   BUILD_AND_TEST.md
   CODE_STYLE.md
   ARCHITECTURE_NOTES.md
   DEPENDENCIES.md
   TEMPLATE_NOTES.md
+  references/
+    technical/
+    business/
 ```
 
 `AGENTS.md` should be the entry point. Keep it concise and route detailed material into `agents/`.
@@ -181,6 +201,9 @@ Use these roles unless the existing project suggests a better structure:
 `agents/PROJECT_PROFILE.md`
 : Repository map, module ownership, source/test roots, important configs, runtime assumptions.
 
+`agents/PROJECT_EVIDENCE.md`
+: Raw detection and inspection evidence used to generate the other files. Keep this file evidence-heavy so `AGENTS.md` can remain short.
+
 `agents/BUILD_AND_TEST.md`
 : Build commands, targeted test commands, common failure modes, CI parity notes.
 
@@ -196,17 +219,72 @@ Use these roles unless the existing project suggests a better structure:
 `agents/TEMPLATE_NOTES.md`
 : Template-specific guidance copied and adapted from every matched template reference. Group notes by template id so future agents can read only the relevant section.
 
+`agents/REFERENCES.md`
+: Index for progressive disclosure. It should route future agents to the
+  smallest relevant technical reference and, only when behavior semantics
+  matter, the matching business reference.
+
+`agents/references/technical/`
+: Focused technical context by surface, such as endpoints, services,
+  persistence, Pub/Sub, integrations, testing, and Maven commands.
+
+`agents/references/business/`
+: Business/domain context separated from technical structure. For generated
+  drafts, mark policy facts as "Needs confirmation" unless code, tests,
+  OpenAPI, product docs, or the user confirm them.
+  After code-changing evals or feature work, update affected business
+  references so future zero-context agents are not guided by stale domain
+  language.
+
 For Spring Boot backend services, prefer adding these focused files when enough
 evidence exists:
 
 `agents/BACKEND_SURFACES.md`
 : Endpoint, service, persistence, outbound client, pub/sub, config, and test
-  catalogs generated from project evidence.
+  catalogs generated from project evidence. For Maven Spring Boot API services,
+  include environment profiles, Flyway migrations, JPA/Hibernate repositories
+  and entities, SpringDoc/OpenAPI clues, Pub/Sub topic/config hints, and unit
+  test locations when detected.
 
 `agents/CALL_CHAINS.md`
 : Request, event, scheduler, or message-entry chains with confidence labels and
   evidence sources, such as static scan, OpenAPI, actuator mappings, or runtime
-  traces.
+  traces. Keep chains explicitly labeled as static/inferred unless they were
+  verified from runtime mappings or traces.
+
+`agents/SUBAGENTS.md`
+: Neutral subagent protocol. It explains when subagents are worth using, the
+  specialist output schema, coordinator merge rules, and Maven Runner behavior.
+
+`agents/subagents/*.md`
+: Neutral role files such as `endpoint-specialist.md`,
+  `service-specialist.md`, `persistence-specialist.md`,
+  `pubsub-specialist.md`, `integration-specialist.md`,
+  `test-specialist.md`, and `maven-runner.md`. Specialist names indicate
+  ownership, not permissions.
+
+`agents/workflows/BACKEND_ANALYSIS.md`
+: Whole-backend analysis workflow and example prompts for tools that support
+  subagent handoff.
+
+`.codex/agents/*.toml`, `.opencode/agents/*.md`, `.github/agents/*.agent.md`
+: Thin native wrappers for Codex, OpenCode, and VS Code Copilot Chat. Wrappers
+  should point back to neutral `agents/subagents/*.md` files and define tool
+  permissions. Keep project facts out of wrappers.
+
+Default specialist posture:
+
+- `endpoint-specialist` may implement endpoint-layer changes when the parent
+  task asks for implementation and the wrapper permits edits.
+- Other generated specialists are read-first by default and may be made
+  implementation-capable later by changing native wrappers intentionally.
+- `maven-runner` is the only generated role intended to execute Maven
+  verification commands. Other specialists recommend commands.
+- Every specialist should inspect source files after reading references before
+  giving confidence above medium.
+- After a specialist or single agent changes source, update the affected
+  focused references when public APIs, persistence fields, business rules, or
+  event payloads changed.
 
 ### 7. Verification
 

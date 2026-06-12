@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: ppd
+  datasource:
+    url: jdbc:postgresql://${PPD_DB_HOST:localhost}:5432/orders_ppd
+    username: ${PPD_DB_USER:orders_app}
+    password: ${PPD_DB_PASSWORD:}
+  cloud:
+    gcp:
+      pubsub:
+        enabled: true
+        project-id: ${PPD_GCP_PROJECT:acme-ppd}
+
+orders:
+  pubsub:
+    enabled: true
+    created-topic: orders.created.ppd
+    status-changed-topic: orders.status-changed.ppd

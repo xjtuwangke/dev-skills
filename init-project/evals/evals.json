@@ -24,6 +24,12 @@
       "prompt": "Initialize this Maven Java repo and include dependency guidance. It has dependencyManagement, several exclusions, and a multi-module pom. Generate whatever dependency tree JSON you can, but do not hang forever if Maven dependency resolution is slow.",
       "expected_output": "The skill should select baseline and maven-java, use inspect_maven_project.py for POM structure, use generate_dependency_tree.py with a timeout for dependency tree analysis, create agents/DEPENDENCIES.md with direct dependencies, dependencyManagement/BOMs, exclusions, dependency-tree command/result status, and mark dependency-tree findings as not verified if Maven cannot resolve in time.",
       "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "初始化这个真实 Spring Boot 3.4 WebFlux 后端项目的 agent 文档。项目是 Maven，使用 Hibernate/JPA、Postgres、Flyway、SpringDoc、GCP Pub/Sub、dev/sit/uat/ppd/prd profile、JUnit5+Mockito、JaCoCo 和 Checkstyle。请保持根 AGENTS.md 简洁，把 endpoint/model/database/entity/repository/service/pubsub/config/test 等证据拆到 agents/ 下，方便后续 agent 渐进披露读取。",
+      "expected_output": "The skill should select baseline, maven-java, and springboot3-webflux, generate a thin AGENTS.md plus agents/PROJECT_PROFILE.md, PROJECT_EVIDENCE.md, BUILD_AND_TEST.md, CODE_STYLE.md, DEPENDENCIES.md, BACKEND_SURFACES.md, and CALL_CHAINS.md. The generated docs should capture Spring Boot 3.4, Java/Maven details, Checkstyle rules such as no wildcard imports/license header/final locals or params when detected, JaCoCo commands, JUnit5/Mockito test locations, profile files for dev/sit/uat/ppd/prd, Flyway migrations, JPA repositories/entities/tables, SpringDoc/OpenAPI clues, GCP Pub/Sub publishers/topic config, endpoint catalog, service collaborators, and static/inferred request/event call chains without disrupting the project structure.",
+      "files": []
     }
   ]
 }

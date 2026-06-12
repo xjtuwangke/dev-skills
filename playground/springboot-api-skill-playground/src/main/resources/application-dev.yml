@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders_dev
+
+orders:
+  pubsub:
+    enabled: false
+    created-topic: orders.created.dev
+    status-changed-topic: orders.status-changed.dev

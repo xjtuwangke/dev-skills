@@ -1,0 +1,9 @@
+name = "persistence_specialist"
+description = "Persistence specialist for JPA entities, repositories, Flyway migrations, and profile database config."
+sandbox_mode = "read-only"
+developer_instructions = """
+Read agents/SUBAGENTS.md, then agents/subagents/persistence-specialist.md.
+Follow the neutral protocol exactly.
+Do not edit files.
+Return the standard specialist output with concrete file references.
+"""

@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: sit
+  datasource:
+    url: jdbc:postgresql://${SIT_DB_HOST:localhost}:5432/orders_sit
+    username: ${SIT_DB_USER:orders_app}
+    password: ${SIT_DB_PASSWORD:}
+  cloud:
+    gcp:
+      pubsub:
+        enabled: true
+        project-id: ${SIT_GCP_PROJECT:acme-sit}
+
+orders:
+  pubsub:
+    enabled: true
+    created-topic: orders.created.sit
+    status-changed-topic: orders.status-changed.sit

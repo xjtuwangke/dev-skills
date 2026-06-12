@@ -72,7 +72,7 @@ def make_webflux(root: Path) -> Path:
     )
     write(
         project / "src/main/java/com/example/payments/PaymentController.java",
-        "package com.example.payments; import org.springframework.web.bind.annotation.RestController; import reactor.core.publisher.Mono; @RestController class PaymentController { Mono<String> health(){ return Mono.just(\"ok\"); } }\n",
+        "package com.example.payments; import org.springframework.web.bind.annotation.GetMapping; import org.springframework.web.bind.annotation.RestController; import reactor.core.publisher.Mono; @RestController class PaymentController { @GetMapping(\"/health\") public Mono<String> health(){ return Mono.just(\"ok\"); } }\n",
     )
     write(
         project / "src/main/java/com/example/payments/PaymentClient.java",
@@ -166,14 +166,64 @@ def validate_webflux(project: Path) -> None:
     assert render["matched_templates"] == ["baseline", "maven-java", "springboot3-webflux"]
     architecture = (project / "agents/ARCHITECTURE_NOTES.md").read_text(encoding="utf-8")
     profile = (project / "agents/PROJECT_PROFILE.md").read_text(encoding="utf-8")
+    evidence = (project / "agents/PROJECT_EVIDENCE.md").read_text(encoding="utf-8")
+    surfaces = (project / "agents/BACKEND_SURFACES.md").read_text(encoding="utf-8")
+    call_chains = (project / "agents/CALL_CHAINS.md").read_text(encoding="utf-8")
+    agents_md = (project / "AGENTS.md").read_text(encoding="utf-8")
+    references = (project / "agents/REFERENCES.md").read_text(encoding="utf-8")
+    subagents = (project / "agents/SUBAGENTS.md").read_text(encoding="utf-8")
+    endpoint_ref = (project / "agents/references/technical/endpoints.md").read_text(encoding="utf-8")
+    business_ref = (project / "agents/references/business/domain-overview.md").read_text(encoding="utf-8")
+    workflow = (project / "agents/workflows/BACKEND_ANALYSIS.md").read_text(encoding="utf-8")
+    endpoint_role = (project / "agents/subagents/endpoint-specialist.md").read_text(encoding="utf-8")
+    maven_role = (project / "agents/subagents/maven-runner.md").read_text(encoding="utf-8")
+    codex_wrapper = (project / ".codex/agents/endpoint-specialist.toml").read_text(encoding="utf-8")
+    opencode_wrapper = (project / ".opencode/agents/backend-coordinator.md").read_text(encoding="utf-8")
+    github_wrapper = (project / ".github/agents/backend-coordinator.agent.md").read_text(encoding="utf-8")
+    github_prompt = (project / ".github/prompts/backend-analysis.prompt.md").read_text(encoding="utf-8")
     assert "PaymentApplication.java" in architecture
     assert "PaymentController.java" in architecture
     assert "PaymentClient.java" in architecture
     assert "PaymentControllerTest.java" in architecture
+    assert "/health" in surfaces
+    assert "PaymentController#health" in call_chains
+    assert '"endpoints"' in evidence
     assert "Representative Feature Files\n- None detected" in architecture
     assert "com.example.payments" in profile
     assert "## Karate Evidence" not in profile
     assert '"karate-at": []' not in profile
+    assert "reference-first progressive disclosure" in agents_md
+    assert "agents/REFERENCES.md" in agents_md
+    assert "Technical References" in references
+    assert "Business References" in references
+    assert "PaymentController#health" in endpoint_ref
+    assert "Generated status: Needs confirmation" not in business_ref
+    assert "Domain Clues" in business_ref
+    assert "Parallelize only when independent review is worth" in workflow
+    assert "Endpoint Specialist" in endpoint_role
+    assert "Source inspection" in endpoint_role
+    assert "Maven Runner" in maven_role
+    assert "sandbox_mode = \"workspace-write\"" in codex_wrapper
+    assert "endpoint-specialist: allow" in opencode_wrapper
+    assert "backend-coordinator" in github_wrapper
+    assert "backend-coordinator" in github_prompt
+    generated_text = "\n".join(
+        [
+            agents_md,
+            references,
+            subagents,
+            endpoint_ref,
+            business_ref,
+            workflow,
+            endpoint_role,
+            maven_role,
+            codex_wrapper,
+            opencode_wrapper,
+            github_wrapper,
+            github_prompt,
+        ]
+    )
+    assert "analyst" not in generated_text.lower()
 
 
 def validate_karate(project: Path) -> None:
