@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: commerce-fulfillment-service
+  profiles:
+    active: dev
+  main:
+    web-application-type: reactive
+  r2dbc:
+    pool:
+      initial-size: 4
+      max-size: 24
+  redis:
+    timeout: 750ms
+
+server:
+  port: 8080
+
+commerce:
+  orders:
+    cache-ttl: 10m
+  clients:
+    inventory:
+      base-url: http://localhost:8091
+      timeout: 2s
+    payment:
+      base-url: http://localhost:8092
+      timeout: 3s
+    shipping:
+      base-url: http://localhost:8093
+      timeout: 3s
+  pubsub:
+    order-created-topic: orders.created
+    order-cancelled-topic: orders.cancelled
+    payment-authorized-topic: payments.authorized
+    inventory-reserved-subscription: inventory.reserved.commerce
+    shipment-updated-subscription: shipment.updated.commerce
+
+springfox:
+  documentation:
+    swagger-ui:
+      enabled: true
+

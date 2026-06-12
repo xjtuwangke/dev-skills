@@ -1,0 +1,6 @@
+.DS_Store
+.sisyphus/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+target/

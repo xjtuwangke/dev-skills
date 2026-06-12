@@ -1,0 +1,19 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://postgres-uat.internal:5432/commerce
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  redis:
+    host: redis-uat.internal
+    port: 6379
+
+commerce:
+  gcp-project-id: commerce-uat
+  clients:
+    inventory:
+      base-url: https://inventory.uat.example.com
+    payment:
+      base-url: https://payments.uat.example.com
+    shipping:
+      base-url: https://shipping.uat.example.com
+

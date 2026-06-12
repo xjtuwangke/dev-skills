@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+MVNW_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+exec mvn -f "$MVNW_DIR/pom.xml" "$@"
+

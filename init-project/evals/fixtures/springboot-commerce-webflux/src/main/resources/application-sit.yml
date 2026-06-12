@@ -1,0 +1,19 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://postgres-sit.internal:5432/commerce
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  redis:
+    host: redis-sit.internal
+    port: 6379
+
+commerce:
+  gcp-project-id: commerce-sit
+  clients:
+    inventory:
+      base-url: https://inventory.sit.example.com
+    payment:
+      base-url: https://payments.sit.example.com
+    shipping:
+      base-url: https://shipping.sit.example.com
+

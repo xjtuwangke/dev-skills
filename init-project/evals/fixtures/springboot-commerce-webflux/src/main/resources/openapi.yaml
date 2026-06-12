@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: Commerce Fulfillment Service
+  version: 0.1.0
+  description: Reactive backend demo for order fulfillment, payment, inventory, shipment, returns, and reconciliation.
+servers:
+  - url: https://commerce.dev.example.com
+    description: dev
+  - url: https://commerce.sit.example.com
+    description: sit
+  - url: https://commerce.uat.example.com
+    description: uat
+  - url: https://commerce.ppd.example.com
+    description: ppd
+  - url: https://commerce.example.com
+    description: prd
+paths:
+  /api/v1/orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      responses:
+        "200": { description: Orders returned }
+    post:
+      operationId: createOrder
+      tags: [orders]
+      responses:
+        "201": { description: Order created }
+  /api/v1/orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200": { description: Order returned }
+  /api/v1/orders/{orderId}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200": { description: Status updated }
+  /api/v1/orders/{orderId}/submit:
+    post:
+      operationId: submitOrder
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "202": { description: Order submitted }
+  /api/v1/orders/{orderId}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "202": { description: Order cancelled }
+  /api/v1/customers/{customerId}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200": { description: Customer returned }
+  /api/v1/customers/{customerId}/orders:
+    get:
+      operationId: listCustomerOrders
+      tags: [customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200": { description: Customer orders returned }
+  /api/v1/inventory/reservations:
+    post:
+      operationId: reserveInventory
+      tags: [inventory]
+      responses:
+        "202": { description: Inventory reserved }
+  /api/v1/inventory/reservations/{reservationId}:
+    get:
+      operationId: getInventoryReservation
+      tags: [inventory]
+      parameters:
+        - $ref: "#/components/parameters/ReservationId"
+      responses:
+        "200": { description: Reservation returned }
+  /api/v1/inventory/reservations/{reservationId}/release:
+    post:
+      operationId: releaseInventoryReservation
+      tags: [inventory]
+      parameters:
+        - $ref: "#/components/parameters/ReservationId"
+      responses:
+        "202": { description: Reservation released }
+  /api/v1/payments/authorize:
+    post:
+      operationId: authorizePayment
+      tags: [payments]
+      responses:
+        "202": { description: Payment authorized }
+  /api/v1/payments/{paymentId}:
+    get:
+      operationId: getPayment
+      tags: [payments]
+      parameters:
+        - $ref: "#/components/parameters/PaymentId"
+      responses:
+        "200": { description: Payment returned }
+  /api/v1/payments/{paymentId}/capture:
+    post:
+      operationId: capturePayment
+      tags: [payments]
+      parameters:
+        - $ref: "#/components/parameters/PaymentId"
+      responses:
+        "202": { description: Payment captured }
+  /api/v1/fulfillment/plans:
+    post:
+      operationId: createFulfillmentPlan
+      tags: [fulfillment]
+      responses:
+        "201": { description: Fulfillment plan created }
+  /api/v1/fulfillment/plans/{planId}:
+    get:
+      operationId: getFulfillmentPlan
+      tags: [fulfillment]
+      parameters:
+        - $ref: "#/components/parameters/PlanId"
+      responses:
+        "200": { description: Fulfillment plan returned }
+  /api/v1/shipments:
+    post:
+      operationId: createShipment
+      tags: [shipments]
+      responses:
+        "201": { description: Shipment created }
+  /api/v1/shipments/{shipmentId}:
+    get:
+      operationId: getShipment
+      tags: [shipments]
+      parameters:
+        - $ref: "#/components/parameters/ShipmentId"
+      responses:
+        "200": { description: Shipment returned }
+  /api/v1/returns:
+    post:
+      operationId: createReturn
+      tags: [returns]
+      responses:
+        "201": { description: Return created }
+  /api/v1/returns/{returnId}:
+    get:
+      operationId: getReturn
+      tags: [returns]
+      parameters:
+        - $ref: "#/components/parameters/ReturnId"
+      responses:
+        "200": { description: Return returned }
+  /api/v1/operations/reconciliation/jobs:
+    post:
+      operationId: startReconciliation
+      tags: [operations]
+      responses:
+        "202": { description: Reconciliation started }
+  /api/v1/operations/reconciliation/jobs/{jobId}:
+    get:
+      operationId: getReconciliationJob
+      tags: [operations]
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "200": { description: Reconciliation job returned }
+  /api/v1/events/orders/{orderId}:
+    get:
+      operationId: listOrderEvents
+      tags: [events]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200": { description: Order event stream returned }
+components:
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema: { type: string }
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema: { type: string }
+    ReservationId:
+      name: reservationId
+      in: path
+      required: true
+      schema: { type: string }
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema: { type: string }
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema: { type: string }
+    ShipmentId:
+      name: shipmentId
+      in: path
+      required: true
+      schema: { type: string }
+    ReturnId:
+      name: returnId
+      in: path
+      required: true
+      schema: { type: string }
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string }
+

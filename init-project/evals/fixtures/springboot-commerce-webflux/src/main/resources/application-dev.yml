@@ -1,0 +1,19 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/commerce_dev
+    username: commerce_dev
+    password: dev-password
+  redis:
+    host: localhost
+    port: 6379
+
+commerce:
+  gcp-project-id: commerce-dev
+  clients:
+    inventory:
+      base-url: http://localhost:8091
+    payment:
+      base-url: http://localhost:8092
+    shipping:
+      base-url: http://localhost:8093
+
