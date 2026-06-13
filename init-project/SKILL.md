@@ -131,17 +131,18 @@ directly from:
 - existing project docs,
 - representative source/config/test files.
 
-Write concise project-specific docs. Keep raw evidence in
-`agents/PROJECT_EVIDENCE.md` when it helps future agents verify why a fact was
-recorded. Mark unsupported guesses as "Needs confirmation".
+Write concise project-specific docs. Do not generate raw evidence dumps by
+default; keep only compact source pointers in the focused cards. Mark
+unsupported guesses as "Needs confirmation".
 
 For Spring Boot backend projects, use reference-first progressive disclosure by
-default. `AGENTS.md` should route future agents to `agents/REFERENCES.md` and
-focused technical/business references. Use subagents only for broad, risky,
-ambiguous, or cross-surface work where independent parallel review is worth the
-extra elapsed time and token cost. Do not rely on `AGENTS.md` to configure
-subagents for every tool; generate native thin wrappers for tools that support
-them and keep reusable project context in `agents/references/`.
+default. `AGENTS.md` should route future agents to `agents/technical.md` for
+technical work and to `agents/business/` for behavior semantics.
+`agents/technical.md` is the next-level technical directory page: it should
+contain common Maven commands, Checkstyle usage, coding standards, and links to
+focused cards under `agents/technical/`. Use subagents, tool wrappers, call
+chain maps, or evidence-heavy files only when the user explicitly asks or the
+project risk clearly justifies the maintenance cost.
 
 ### 4. Create Or Update Agent Files
 
@@ -150,20 +151,23 @@ Default output layout:
 ```text
 AGENTS.md
 agents/
-  REFERENCES.md
-  PROJECT_PROFILE.md
-  PROJECT_EVIDENCE.md
-  BUILD_AND_TEST.md
-  CODE_STYLE.md
-  ARCHITECTURE_NOTES.md
-  DEPENDENCIES.md
-  TEMPLATE_NOTES.md
-  references/
-    technical/
-    business/
+  technical.md          # technical directory page plus common commands/style
+  technical/
+    endpoints.md        # when an API surface exists
+    services.md         # when service/application logic exists
+    persistence.md      # when repositories/entities/migrations exist
+    clients.md          # when outbound HTTP/WebClient calls exist
+    integrations.md     # when external systems exist
+    pubsub.md           # when messaging exists
+    testing.md
+  business/
+    *.md                # only when behavior semantics are worth preserving
 ```
 
-`AGENTS.md` should be the entry point. Keep it concise and route detailed material into `agents/`.
+`AGENTS.md` should be the entry point. Keep it to project one-sentence
+positioning and a `Where To Look` table. Put commands, conventions, validation
+rules, best practices, and verification detail into `agents/technical.md` or
+focused technical/business cards.
 
 If files already exist:
 
@@ -193,101 +197,39 @@ Avoid secrets. If config files contain credentials or tokens, mention only the f
 Use these roles unless the existing project suggests a better structure:
 
 `AGENTS.md`
-: Short orientation for all future agents. Include matched template ids, primary project purpose, essential commands, where deeper docs live, and rules that apply to every change.
+: Short orientation for all future agents. Include only one-sentence project
+  positioning and a `Where To Look` table that routes to `agents/technical.md`
+  and domain/business cards.
 
-`agents/PROJECT_PROFILE.md`
-: Repository map, module ownership, source/test roots, important configs, runtime assumptions.
+`agents/technical.md`
+: Technical directory page for the next level of progressive disclosure.
+  Include common Maven commands, `mvn checkstyle:check`, Checkstyle config and
+  report paths, low-context Maven log handling, and coding standards inferred
+  from nearby code.
 
-`agents/PROJECT_EVIDENCE.md`
-: Raw detection and inspection evidence used to generate the other files. Keep this file evidence-heavy so `AGENTS.md` can remain short.
-
-`agents/BUILD_AND_TEST.md`
-: Build commands, targeted test commands, common failure modes, CI parity notes.
-
-`agents/CODE_STYLE.md`
-: Local coding style inferred from the repo, naming conventions, error-handling style, logging style, test style.
-
-`agents/ARCHITECTURE_NOTES.md`
-: System boundaries, request/test flow, dependency patterns, extension points, known risks.
-
-`agents/DEPENDENCIES.md`
-: Dependency inventory and dependency-tree findings when the project has a package manager or dependency graph worth documenting. For Maven Java projects, include direct dependencies, important transitive dependencies, dependency management/BOMs, exclusions, logging bindings, security-sensitive libraries, and any dependency-tree command output path or summary.
-
-`agents/TEMPLATE_NOTES.md`
-: Template-specific guidance copied and adapted from every matched template reference. Group notes by template id so future agents can read only the relevant section.
-
-`agents/REFERENCES.md`
-: Index for progressive disclosure. It should route future agents to the
-  smallest relevant technical reference and, only when behavior semantics
-  matter, the matching business reference.
-
-`agents/references/technical/`
+`agents/technical/*.md`
 : Focused technical context by surface, such as endpoints, services,
-  persistence, Pub/Sub, integrations, testing, and Maven commands.
+  persistence, clients, Pub/Sub, integrations, and testing. Each focused
+  technical card should include a `Best Practices` section with a compact
+  code, config, SQL, shell, or test demo that shows the recommended local
+  pattern.
 
-`agents/references/business/`
-: Business/domain context separated from technical structure. For generated
-  drafts, mark policy facts as "Needs confirmation" unless code, tests,
-  OpenAPI, product docs, or the user confirm them.
-  After code-changing evals or feature work, update affected business
-  references so future zero-context agents are not guided by stale domain
-  language.
+`agents/business/*.md`
+: Business/domain context separated from technical structure. Generate only
+  useful domain cards. Mark policy facts as "Needs confirmation" unless code,
+  tests, OpenAPI, product docs, or the user confirm them. After code-changing
+  evals or feature work, update affected business cards so future zero-context
+  agents are not guided by stale domain language.
 
-For Spring Boot backend services, prefer adding these focused files when enough
-evidence exists:
+Default verification posture:
 
-`agents/BACKEND_SURFACES.md`
-: Endpoint, service, persistence, outbound client, pub/sub, config, and test
-  catalogs created from project evidence. For Maven Spring Boot API services,
-  include environment profiles, Flyway migrations, JPA/Hibernate repositories
-  and entities, SpringDoc/OpenAPI clues, Pub/Sub topic/config hints, and unit
-  test locations when detected.
-
-`agents/CALL_CHAINS.md`
-: Request, event, scheduler, or message-entry chains with confidence labels and
-  evidence sources, such as static scan, OpenAPI, actuator mappings, or runtime
-  traces. Keep chains explicitly labeled as static/inferred unless they were
-  verified from runtime mappings or traces.
-
-`agents/SUBAGENTS.md`
-: Neutral subagent protocol. It explains when subagents are worth using, the
-  specialist output schema, coordinator merge rules, and Maven Runner behavior.
-
-`agents/subagents/*.md`
-: Neutral role files such as `endpoint-specialist.md`,
-  `service-specialist.md`, `persistence-specialist.md`,
-  `pubsub-specialist.md`, `integration-specialist.md`,
-  `test-specialist.md`, and `maven-runner.md`. Specialist names indicate
-  ownership, not permissions.
-
-`agents/workflows/BACKEND_ANALYSIS.md`
-: Whole-backend analysis workflow and example prompts for tools that support
-  subagent handoff.
-
-`.codex/agents/*.toml`, `.opencode/agents/*.md`, `.github/agents/*.agent.md`
-: Thin native wrappers for Codex, OpenCode, and VS Code Copilot Chat. Wrappers
-  should point back to neutral `agents/subagents/*.md` files and define tool
-  permissions. Keep project facts out of wrappers.
-
-Default specialist posture:
-
-- `endpoint-specialist` may implement endpoint-layer changes when the parent
-  task asks for implementation and the wrapper permits edits.
-- Other generated specialists are read-first by default and may be made
-  implementation-capable later by changing native wrappers intentionally.
-- `maven-runner` is the only generated role intended to execute Maven
-  verification commands. Other specialists recommend commands.
 - Maven output must be low-context by default. Maven references
   should tell agents to prefer `-B -ntp`, redirect full stdout/stderr to
   `target/agent-maven-logs/`, and return only pass/fail, test counts, first
   actionable failures, Checkstyle/Jacoco failures, report paths, and next
-  commands. This applies especially when no Maven Runner subagent is
-  available and the coordinator runs Maven directly.
-- Every specialist should inspect source files after reading references before
-  giving confidence above medium.
-- After a specialist or single agent changes source, update the affected
-  focused references when public APIs, persistence fields, business rules, or
-  event payloads changed.
+  commands.
+- After an agent changes source, update the affected focused cards when public
+  APIs, persistence fields, business rules, or event payloads changed.
 
 ### 7. Verification
 

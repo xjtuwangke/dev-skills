@@ -34,3 +34,15 @@ orders:
     enabled: false
     created-topic: orders.created.dev
     status-changed-topic: orders.status-changed.dev
+
+clients:
+  customer-profile:
+    base-url: https://customer-profile.internal.acme.example
+  catalog:
+    base-url: https://catalog.internal.acme.example
+  inventory:
+    base-url: https://inventory.internal.acme.example
+  payment-gateway:
+    base-url: https://payments.internal.acme.example
+  shipping:
+    base-url: https://shipping.internal.acme.example

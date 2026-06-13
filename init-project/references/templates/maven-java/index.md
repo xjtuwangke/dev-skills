@@ -46,7 +46,10 @@ The script first checks whether the target root is a Maven project. If root `pom
 - Recursive module POM summaries for multi-module projects.
 - Java version hints from common Maven properties or compiler plugin configuration.
 
-Use this JSON as structured evidence for `PROJECT_PROFILE.md`, `BUILD_AND_TEST.md`, `DEPENDENCIES.md`, and `AGENTS.md`. If `is_maven_project` is false, do not force the `maven-java` template unless the user explicitly identifies another root.
+Use this JSON as structured evidence for `agents/technical.md` and focused
+technical cards such as `agents/technical/dependencies.md` when dependency
+detail is worth preserving. If `is_maven_project` is false, do not force the
+`maven-java` template unless the user explicitly identifies another root.
 
 When dependency analysis matters, generate a dependency tree:
 
@@ -68,9 +71,10 @@ python3 /path/to/init-project/scripts/templates/maven-java/generate_dependency_t
 
 Use the dependency tree to document important transitive dependencies, conflict-prone libraries, logging bindings, security-sensitive dependencies, and places where exclusions explain why a dependency is or is not present.
 
-## DEPENDENCIES.md Content
+## agents/technical/dependencies.md Content
 
-Create `agents/DEPENDENCIES.md` for Maven projects. Include:
+Create `agents/technical/dependencies.md` only when dependency detail is useful
+for future agents. Include:
 
 - Coordinates for the root project and important modules.
 - Java version hint and Maven wrapper status.
@@ -86,24 +90,24 @@ If the dependency tree command times out or cannot resolve, still create the fil
 
 ## AGENTS.md Guidance
 
-Add these Maven/Java facts to the root `AGENTS.md`:
+Root `AGENTS.md` should not carry Maven command detail. Keep only one-sentence
+project positioning and `Where To Look`; put Maven/Java facts in
+`agents/technical.md`.
 
 ```markdown
 ## Project
-- Template facets: maven-java[, additional facets]
-- Build system: Maven
-- Java version: [verified/inferred/Needs confirmation]
-- Maven wrapper: [present/absent]
+- [One sentence describing this Maven Java project and primary stack.]
 
-## Fast Commands
-- Build: [./mvnw clean verify or repo-specific command]
-- Unit tests: [./mvnw test or repo-specific command]
-- Targeted test: [./mvnw -Dtest=SomeTest test or repo-specific command]
+## Where To Look
+
+| Task | Start Here | Notes |
+| --- | --- | --- |
+| Technical change, review, build, or test | `agents/technical.md` | Maven commands, Java version, wrapper status, code style, and focused technical links. |
 ```
 
 Prefer wrapper commands when `mvnw` exists. If no wrapper exists, use `mvn` and say no Maven wrapper was found.
 
-## PROJECT_PROFILE.md Content
+## agents/technical.md Content
 
 Capture:
 
@@ -120,7 +124,7 @@ Use evidence language:
 - "Inferred from source layout"
 - "Needs confirmation"
 
-## BUILD_AND_TEST.md Content
+## Maven Commands Content
 
 Typical commands to adapt:
 
@@ -158,7 +162,7 @@ If the command fails, inspect focused report files before reading the full log:
 - `target/site/jacoco/jacoco.xml`
 - `tail -80 target/agent-maven-logs/clean-verify.log`
 
-## CODE_STYLE.md Content
+## Code Style Content
 
 Infer style from existing code:
 

@@ -70,68 +70,60 @@ application config files, profile names, environment variable placeholders,
 HTTP endpoint mappings, services and constructor collaborators, Spring Data
 repositories, JPA/Hibernate entities and tables, Flyway migrations, Pub/Sub
 classes/topic hints, and test catalogs. Use this output to refine
-`PROJECT_PROFILE.md`, `PROJECT_EVIDENCE.md`, `BACKEND_SURFACES.md`,
-`CALL_CHAINS.md`, `ARCHITECTURE_NOTES.md`, `BUILD_AND_TEST.md`, and
-`TEMPLATE_NOTES.md`.
+`AGENTS.md`, `agents/technical.md`, focused `agents/technical/*.md` cards, and
+focused `agents/business/*.md` cards.
 
-For backend projects that need deeper context, create reference-first docs:
+For backend projects that need reusable context, create a compact
+reference-first layout:
 
 ```text
-agents/REFERENCES.md
-agents/references/technical/
-agents/references/business/
-agents/SUBAGENTS.md
-agents/subagents/*.md
-agents/workflows/BACKEND_ANALYSIS.md
-.codex/agents/*.toml
-.opencode/agents/*.md
-.github/agents/*.agent.md
+AGENTS.md
+agents/technical.md
+agents/technical/
+  endpoints.md
+  services.md
+  persistence.md
+  clients.md
+  pubsub.md
+  integrations.md
+  testing.md
+agents/business/
+  *.md
 ```
 
-Keep reusable project facts in `agents/references/`. Keep role behavior in
-`agents/subagents/`. Keep tool-specific permissions in thin wrappers only.
+Generate only files backed by useful project evidence. Do not create subagent
+wrappers, workflow files, evidence dumps, or global architecture catalogs by
+default.
 
 ## AGENTS.md Guidance
 
-Add these service-specific facts:
+Keep root `AGENTS.md` to one-sentence project positioning and `Where To Look`.
+Put working rules, commands, coding standards, and verification detail in
+`agents/technical.md`.
 
 ```markdown
 ## Project
-- Primary purpose: Spring Boot 3 WebFlux service
-- Template facets: maven-java, springboot3-webflux[, additional facets]
+- Spring Boot 3 WebFlux service using Java [version], Maven, [persistence], and [integrations].
 
-## Working Rules
-- Preserve reactive flow; do not introduce blocking calls in event-loop paths.
-- Add or update focused tests with behavior changes.
-- Keep configuration changes explicit and document required environment variables.
+## Where To Look
+
+| Task | Start Here | Notes |
+| --- | --- | --- |
+| Technical change, review, build, or test | `agents/technical.md` | Directory page with commands, coding standards, and focused technical links. |
+| Analyze business logic | `agents/business/` | Read only the relevant domain card before changing semantics. |
 ```
 
-## PROJECT_PROFILE.md Content
+## agents/technical.md Content
 
-Capture:
+Use `agents/technical.md` as the technical directory page and common technical
+rules page. It should link to focused technical cards and include:
 
-- Application entrypoint.
-- Main packages and layer/package organization.
-- Configuration files and profile strategy.
-- Important external integrations: databases, message brokers, HTTP clients, auth, service discovery.
-- Runtime assumptions: ports, profiles, required env vars.
-
-For Boot API services with enough evidence, also create
-`agents/REFERENCES.md`, focused technical/business reference files,
-`agents/BACKEND_SURFACES.md`, and `agents/CALL_CHAINS.md` so the root
-`AGENTS.md` can stay thin while still routing future agents to endpoint,
-service, persistence, Pub/Sub, migration, and business-context facts.
-
-Default strategy:
-
-- Narrow task: read `AGENTS.md`, `agents/REFERENCES.md`, one focused reference,
-  then inspect the relevant source files.
-- Broad or risky task: use `agents/workflows/BACKEND_ANALYSIS.md` and specialist
-  subagents when the current tool supports them.
-- Subagents cost extra context and merge work; use them for independent
-  cross-surface review, not for every edit.
-
-## BUILD_AND_TEST.md Content
+- Build, test, checkstyle, local run, and low-context Maven log commands.
+- Direct Checkstyle command, usually `mvn -B -ntp checkstyle:check`.
+- Checkstyle config/report paths when present.
+- Coding standards inferred from nearby code.
+- Java, Spring, WebFlux/Reactor, DTO, exception, logging, and test conventions.
+- Generated-output and local-log paths that agents must not commit.
 
 Add service commands when supported by the repo:
 
@@ -145,9 +137,58 @@ Add service commands when supported by the repo:
 
 If integration tests require external services, profiles, Docker Compose, or Testcontainers, document the safe quick command separately from the full CI command.
 
-## CODE_STYLE.md Content
+## Focused Technical Card Content
 
-Infer:
+Capture only the relevant facts in focused cards under `agents/technical/`:
+
+- Application entrypoint.
+- Main packages and layer/package organization.
+- Configuration files and profile strategy.
+- Important external integrations: databases, message brokers, HTTP clients, auth, service discovery.
+- Runtime assumptions: ports, profiles, required env vars.
+- Endpoint, service, persistence, client, Pub/Sub, and testing source areas.
+- Business cards to read when code behavior encodes domain semantics.
+- A `Best Practices` section with a compact code, config, SQL, shell, or test
+  demo that matches the local project style.
+
+For `agents/technical/endpoints.md`, organize content by individual API when
+the project exposes HTTP endpoints. Use one section per interface, for example
+`### POST /api/orders`, and include:
+
+- API method and path.
+- Documentation address when available, such as SpringDoc Swagger UI and
+  OpenAPI JSON paths.
+- Owning endpoint/controller/router class and method.
+- Request POJO, response POJO, status code, and important response headers.
+- A structured validation table per API covering body, path variable, query
+  parameter, and header validations.
+- Error/status mapping and endpoint tests that cover the route.
+- State explicitly when no `@RequestHeader` or header validation is present.
+
+For `agents/technical/clients.md`, organize content by individual downstream
+API when the project has outbound HTTP clients. Use one section per downstream
+interface, for example `### POST /v1/payments/authorizations`, and include:
+
+- Host/base URL config key and default host when available.
+- Owning client class and method.
+- HTTP method and downstream path.
+- Request POJO, response POJO, request headers, and response handling.
+- A structured validation table covering body, path variable, query parameter,
+  and header requirements.
+- Timeout/retry/error mapping when present; write "not configured" when absent.
+- Tests that cover host, path, method, serialization, or error handling.
+
+Default strategy:
+
+- Narrow technical task: read `AGENTS.md`, `agents/technical.md`, one focused
+  technical card, then inspect the relevant source files.
+- Business-semantic task: read `AGENTS.md`, the relevant business card, and
+  `agents/technical.md` only when implementation details are needed.
+- Broad or risky task: inspect `agents/technical.md`, multiple focused cards,
+  and source areas before implementing. Add subagent or workflow files only
+  when the user asks.
+
+Coding standards to infer for `agents/technical.md`:
 
 - Controller/router/handler style.
 - DTO and validation conventions.
@@ -156,50 +197,22 @@ Infer:
 - Reactive style: `Mono`/`Flux` composition, retries, timeouts, scheduler use.
 - Test naming, fixture style, assertions, mocks.
 
-## ARCHITECTURE_NOTES.md Content
+## Spring Boot Notes
 
-Document the request flow:
-
-```text
-HTTP route/controller -> handler/service -> client/repository -> external dependency
-```
-
-Add project-specific notes:
-
-- Where routes/controllers live.
-- Where business logic lives.
-- Where outbound clients live.
-- Where configuration properties are bound.
-- Where cross-cutting concerns live: filters, security, tracing, metrics, error mapping.
-- Where tests should be added for each layer.
-
-## TEMPLATE_NOTES.md Content
-
-```markdown
-# Spring Boot 3 WebFlux Agent Notes
-
-## Reactive Guidelines
 - Prefer composing `Mono` and `Flux` pipelines over blocking to extract values.
 - Avoid `block()`, `toFuture().get()`, `Thread.sleep`, and blocking I/O inside request handling paths.
 - If legacy blocking work is unavoidable, isolate it deliberately and document the scheduler choice.
 - Preserve backpressure and cancellation behavior when changing streams.
-
-## Testing Guidelines
 - Use existing test patterns first.
 - For WebFlux endpoints, prefer `WebTestClient` when the project already uses it.
 - For Reactor pipelines, prefer `StepVerifier` when present.
 - Keep unit tests focused; use Spring context tests only when wiring/configuration matters.
-
-## Spring Boot 3 Notes
 - Spring Boot 3 uses Jakarta namespaces for many APIs.
 - Java 17+ is expected unless the project proves otherwise.
 - Configuration properties, validation, security, and actuator behavior should follow existing project patterns.
-
-## Common Risks
 - Accidentally adding servlet MVC dependencies to a WebFlux service.
 - Introducing blocking calls on event-loop threads.
 - Treating a WebFlux + Hibernate/JPA service as fully non-blocking. If JPA is
   present, document where blocking repository work is isolated.
 - Changing API serialization/deserialization without updating tests.
 - Adding config that works locally but fails in CI because env vars are undocumented.
-```

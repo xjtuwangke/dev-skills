@@ -1,9 +1,0 @@
-name = "pubsub_specialist"
-description = "Pub/Sub specialist for GCP Pub/Sub publishing behavior and topic configuration."
-sandbox_mode = "read-only"
-developer_instructions = """
-Read agents/SUBAGENTS.md, then agents/subagents/pubsub-specialist.md.
-Follow the neutral protocol exactly.
-Do not edit files.
-Return the standard specialist output with concrete file references.
-"""

@@ -6,9 +6,9 @@ Use this template for every project initialized by `init-project`. It captures g
 
 This baseline distills stable public guidance from:
 
-- OpenAI Codex AGENTS.md guidance: AGENTS files provide consistent project instructions, can be layered by scope, and should include repository expectations and verification commands.
+- OpenAI Codex AGENTS.md guidance: AGENTS files provide consistent project instructions and can be layered by scope; this template routes detailed expectations and verification commands into `agents/technical.md`.
   https://developers.openai.com/codex/guides/agents-md
-- AGENTS.md open format: AGENTS.md is a predictable README-like place for agent instructions, setup commands, tests, and code style.
+- AGENTS.md open format: AGENTS.md is a predictable README-like place for agent instructions; this template keeps the root file as a router and moves setup, tests, and code style into focused docs.
   https://agents.md/
 - GitHub Copilot repository instructions: agent onboarding instructions should describe how a cloud agent can work efficiently in a repo; nearest AGENTS.md can take precedence.
   https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions
@@ -28,37 +28,21 @@ Use this baseline shape unless the project already has a stronger local conventi
 # AGENTS.md
 
 ## Project
-- Purpose: [what this repository does]
-- Primary language/framework: [discovered stack]
-- Template facets: baseline[, stack facets]
+- [One sentence describing what this repository is and its primary stack.]
 
-## Start Here
-- Project profile: agents/PROJECT_PROFILE.md
-- Build and test commands: agents/BUILD_AND_TEST.md
-- Code style: agents/CODE_STYLE.md
-- Architecture notes: agents/ARCHITECTURE_NOTES.md
-- Template notes: agents/TEMPLATE_NOTES.md
+## Where To Look
 
-## Baseline Working Rules
-- Read existing code before editing; prefer local patterns over new abstractions.
-- Keep changes scoped to the user request and avoid unrelated refactors.
-- Preserve public APIs, data contracts, and migration behavior unless the task explicitly changes them.
-- Add or update focused tests for behavior changes.
-- Run the smallest useful verification command first, then broader checks when risk warrants it.
-- Document any verification you could not run and why.
-- Do not commit secrets, credentials, generated build output, or local machine state.
-- Ask before adding new production dependencies or changing build/deploy behavior.
-
-## Verification Checklist
-- [ ] Relevant files were inspected before editing.
-- [ ] Existing conventions were followed or the deviation is explained.
-- [ ] Tests/build/lint were run, or skipped with a reason.
-- [ ] Security-sensitive changes were reviewed for input validation, auth, secrets, and unsafe I/O.
+| Task | Start Here | Notes |
+| --- | --- | --- |
+| Technical change, review, build, or test | `agents/technical.md` | Commands, coding standards, verification discipline, and focused technical links. |
+| Analyze business logic | `agents/business/` | Read only the relevant domain card before changing semantics. |
 ```
 
 ## Baseline Agent Rules
 
-Put these rules in `AGENTS.md` or `agents/TEMPLATE_NOTES.md` after adapting wording to the project:
+Put these rules in `agents/technical.md` or focused cards after adapting
+wording to the project. Keep root `AGENTS.md` to project positioning and
+`Where To Look`.
 
 ### Discovery Before Editing
 
@@ -79,7 +63,7 @@ Why: coding agents are most reliable when the task boundary is explicit and smal
 
 ### Verification
 
-- Capture the canonical build/test/lint commands in `agents/BUILD_AND_TEST.md`.
+- Capture the canonical build/test/lint commands in `agents/technical.md`.
 - Prefer the smallest relevant command for quick feedback, such as a targeted test.
 - Run broader verification for shared code, cross-module contracts, or risky changes.
 - When checks cannot run, record the reason and the residual risk.
@@ -106,12 +90,12 @@ Why: concise, scoped, composable rules are easier for agents to follow and less 
 
 ## File Placement Guidance
 
-- `AGENTS.md`: short always-read entry point and high-signal rules.
-- `agents/PROJECT_PROFILE.md`: repo map and discovered facts.
-- `agents/BUILD_AND_TEST.md`: commands and verification strategy.
-- `agents/CODE_STYLE.md`: coding conventions inferred from the repo.
-- `agents/ARCHITECTURE_NOTES.md`: architecture boundaries and risky areas.
-- `agents/TEMPLATE_NOTES.md`: baseline notes plus stack-specific template sections.
+- `AGENTS.md`: short always-read entry point with one-sentence project
+  positioning and `Where To Look`.
+- `agents/technical.md`: technical directory page, commands, verification
+  strategy, coding conventions, and common guardrails.
+- `agents/technical/*.md`: focused technical cards by surface.
+- `agents/business/*.md`: business/domain cards when behavior semantics matter.
 
-If a project supports nested instruction files, keep broad rules at the root and put specialized rules close to the relevant subdirectory.
-
+If a project supports nested instruction files, keep the root as a router and
+put specialized rules close to the relevant subdirectory or focused card.

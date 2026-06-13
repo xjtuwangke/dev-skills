@@ -46,27 +46,29 @@ After `karate-at` matches, use the static inspector to collect test-suite eviden
 python3 /path/to/init-project/scripts/templates/karate-at/inspect_karate_project.py /path/to/project
 ```
 
-It emits JSON for feature files, tags, runner classes, `karate-config.js`, environment hints, and fixtures/schemas/payloads. Use this output to refine `PROJECT_PROFILE.md`, `BUILD_AND_TEST.md`, `CODE_STYLE.md`, `ARCHITECTURE_NOTES.md`, and `TEMPLATE_NOTES.md`.
+It emits JSON for feature files, tags, runner classes, `karate-config.js`,
+environment hints, and fixtures/schemas/payloads. Use this output to refine
+`agents/technical.md` and focused technical cards such as
+`agents/technical/testing.md` and `agents/technical/integrations.md`.
 
 ## AGENTS.md Guidance
 
-Add these Karate-specific facts:
+Keep root `AGENTS.md` to one-sentence project positioning and `Where To Look`.
+Put Karate commands, conventions, environment rules, and suite details in
+`agents/technical.md` or focused technical cards.
 
 ```markdown
 ## Project
-- Primary purpose: [Karate acceptance-test project / service repo with Karate tests]
-- Template facets: maven-java, karate-at[, additional facets]
-- Feature roots: [discovered roots]
-- Runner roots: [discovered roots]
+- [One sentence describing this Karate acceptance/API test project and primary stack.]
 
-## Working Rules
-- Keep scenarios readable and behavior-focused.
-- Reuse existing helpers, payload fixtures, schemas, and tag conventions.
-- Do not hard-code credentials, tokens, hostnames, or environment-specific secrets.
-- Preserve environment/tag behavior when adding or changing tests.
+## Where To Look
+
+| Task | Start Here | Notes |
+| --- | --- | --- |
+| Change tests, commands, tags, or environments | `agents/technical.md` | Karate commands, coding standards, verification discipline, and focused test links. |
 ```
 
-## PROJECT_PROFILE.md Content
+## agents/technical.md Content
 
 Capture:
 
@@ -79,7 +81,7 @@ Capture:
 
 Mark anything environment-specific as "Needs confirmation" unless verified in docs/config.
 
-## BUILD_AND_TEST.md Content
+## Maven/Karate Commands Content
 
 Typical commands to adapt:
 
@@ -98,7 +100,7 @@ Document:
 - Required env vars and secrets handling.
 - Commands that call real shared environments and should be used carefully.
 
-## CODE_STYLE.md Content
+## Karate Style Content
 
 Infer style from existing features:
 
@@ -112,7 +114,7 @@ Infer style from existing features:
 
 Karate tests are executable specs; keep intent clear for humans.
 
-## ARCHITECTURE_NOTES.md Content
+## agents/technical/testing.md Content
 
 Document the test flow:
 
@@ -129,7 +131,7 @@ Add project-specific notes:
 - How reports are generated and where they land.
 - Risks around shared environments, flaky dependencies, and data coupling.
 
-## TEMPLATE_NOTES.md Content
+## Best Practices Content
 
 ```markdown
 # Karate AT Agent Notes

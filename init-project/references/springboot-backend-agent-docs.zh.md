@@ -1,453 +1,206 @@
-# Spring Boot 后端 AGENTS.md 组织建议
+# Spring Boot 后端 Agent 文档组织建议
 
-这份参考用于指导 `init-project` 在 Spring Boot 后端项目里生成 `AGENTS.md` 和 `agents/` 支撑文档。目标不是写一份人类项目 Wiki，而是给 coding agent 一张能快速定位代码、理解边界、追踪调用链的工作地图。
+这份参考用于指导 `init-project` 为 Spring Boot 后端项目生成
+`AGENTS.md` 和 `agents/` 支撑文档。目标不是写项目 Wiki，也不是保存
+完整证据库，而是给后续 coding agent 一张低维护成本的工作地图。
 
-核心建议：根目录 `AGENTS.md` 保持短，把详细事实拆到 `agents/` 下；默认走 reference-first 渐进披露，只有任务足够宽、风险足够高、需要独立视角或并行审阅时才启用 subagents。信息按两条轴组织：
+## 核心原则
 
-- 结构轴：endpoint、service、persistence、client、pubsub、config、test。
-- 链路轴：某个入口进来后，调用哪个 service、访问哪些 repository、调用哪些下游、发布或消费哪些消息。
-
-`subagent` 文档和 `reference` 文档要分开：
-
-- `agents/references/technical/` 和 `agents/references/business/` 保存项目事实和可复用上下文。
-- `agents/subagents/*.md` 保存角色职责、读取顺序、输出格式和协作协议。
-- `.codex/agents/*.toml`、`.opencode/agents/*.md`、`.github/agents/*.agent.md` 只是薄 wrapper，用来适配 Codex、OpenCode、VS Code Copilot Chat 等不同工具的权限和调用方式。
-- 对窄任务，单 agent 读取 `AGENTS.md` -> `agents/REFERENCES.md` -> 一个 focused reference -> 源码，通常更快也更省 token。
-- 对宽任务，主 agent 作为 coordinator，把 endpoint/service/persistence/pubsub/integration/test/maven-runner 等 specialist 并行派出去，再合并结果。
-- 做完涉及 API、数据库字段、业务规则或事件 payload 的代码变更后，同步更新受影响的 focused references，尤其是 `agents/references/business/`。陈旧的业务文档比没有文档更容易误导零上下文 agent。
-
-## 调研结论
-
-Spring Boot 项目的 agent 文档应该优先使用可提取事实，而不是泛泛而谈的分层规则。
-
-可用事实来源：
-
-- Spring MVC/WebFlux request mapping：`@RequestMapping`、`@GetMapping`、`@PostMapping` 等注解可以表达路径、HTTP method、params、headers 和 media types。参考：[Spring Framework Mapping Requests](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html)。
-- Spring Boot Actuator mappings：运行应用后，`/actuator/mappings` 能给出应用 request mappings。参考：[Spring Boot mappings endpoint](https://docs.spring.io/spring-boot/api/rest/actuator/mappings.html)。
-- OpenAPI：`springdoc-openapi` 可以通过 Spring configuration、class structure 和 annotations 推断 API 语义并生成 JSON/YAML/HTML。参考：[springdoc-openapi](https://springdoc.org/)。
-- Persistence：Spring Data repository interface 以 domain class 和 ID 类型绑定，通常扩展 `Repository`、`CrudRepository` 或其变体。参考：[Spring Data JPA repositories](https://docs.spring.io/spring-data/jpa/reference/repositories/definition.html)。
-- Client：Spring Framework 提供 `RestClient`、`WebClient`、HTTP Service Clients 等 outbound REST client 选择。参考：[Spring REST Clients](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html) 和 [Spring WebClient](https://docs.spring.io/spring-framework/reference/web/webflux-webclient.html)。
-- Pub/sub：Spring Cloud Stream 建模 binder、binding、message，支持 persistent pub/sub、consumer groups、partitioning。参考：[Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream/)。
-- 模块边界和运行时交互：Spring Modulith 支持结构校验、模块文档、模块级集成测试、运行时交互观察。参考：[Spring Modulith fundamentals](https://docs.spring.io/spring-modulith/reference/fundamentals.html) 和 [Spring Modulith production-ready features](https://docs.spring.io/spring-modulith/reference/production-ready.html)。
-- Java 调用图：静态调用图可以从 class/jar 字节码抽取，动态调用图可以用 Java agent 记录运行时调用。参考：[java-callgraph](https://github.com/gousiosg/java-callgraph)。
-
-实践判断：
-
-- endpoint catalog 最好来自注解扫描、OpenAPI 或 actuator mappings，不要手写猜测。
-- persistence catalog 应该记录 repository、entity、table、transaction owner、query method，不要只列依赖。
-- client catalog 应该记录 outbound protocol、base URL config key、timeout/retry/error mapping、调用方 service。
-- pubsub catalog 应该记录 topic/queue/binding、producer/consumer、payload、idempotency、DLQ/retry。
-- call chain catalog 应该同时标注 confidence：`static`、`runtime`、`inferred`、`needs-confirmation`。Spring 的代理、AOP、反射、事件和消息会让纯静态调用链不完整。
+- 根目录 `AGENTS.md` 保持短，只负责一句话定位项目和 `Where To Look` 路由。
+- 可复用上下文直接放在 `agents/technical/` 和 `agents/business/`。
+- 不再默认生成额外的 `references` 中间层目录。
+- 不默认生成 `PROJECT_PROFILE.md`、`PROJECT_EVIDENCE.md`、
+  `ARCHITECTURE_NOTES.md`、`BACKEND_SURFACES.md`、`CALL_CHAINS.md`、
+  `SUBAGENTS.md` 或 tool wrapper。
+- 证据要够用，不追求堆满。能指向源码、测试、配置或 OpenAPI 的事实才写入。
+- 业务语义和技术结构分开。代码需求变更、review、业务逻辑梳理应该能各读所需。
 
 ## 推荐输出结构
-
-对 Spring Boot 后端项目，建议默认生成：
 
 ```text
 AGENTS.md
 agents/
-  REFERENCES.md
-  PROJECT_PROFILE.md
-  PROJECT_EVIDENCE.md
-  BUILD_AND_TEST.md
-  BACKEND_SURFACES.md
-  CALL_CHAINS.md
-  DEPENDENCIES.md
-  CODE_STYLE.md
-  references/
-    technical/
-      endpoints.md
-      services.md
-      persistence.md
-      pubsub.md
-      integrations.md
-      testing.md
-      maven.md
-    business/
-      domain-overview.md
-      business-rules.md
-      events.md
-  SUBAGENTS.md
-  subagents/
-    endpoint-specialist.md
-    service-specialist.md
-    persistence-specialist.md
-    pubsub-specialist.md
-    integration-specialist.md
-    test-specialist.md
-    maven-runner.md
-  workflows/
-    BACKEND_ANALYSIS.md
-.codex/agents/*.toml
-.opencode/agents/*.md
-.github/agents/*.agent.md
-.github/prompts/backend-analysis.prompt.md
+  technical.md
+  technical/
+    endpoints.md
+    services.md
+    persistence.md
+    clients.md
+    integrations.md
+    pubsub.md
+    testing.md
+  business/
+    domain-overview.md
+    business-rules.md
+    events.md
 ```
 
-`AGENTS.md` 只放入口：
+实际生成时按项目证据裁剪。没有 Pub/Sub 就不生成 `pubsub.md`；没有清晰业务
+规则就不硬写业务卡片。
 
-```markdown
-# Agent Instructions
+## 主要使用场景
 
-## Project
+代码需求变更、分析和实施：
 
-- Maven Java Spring Boot backend service.
-- Read `agents/BACKEND_SURFACES.md` before changing endpoints, clients, persistence, or messaging.
-- Read `agents/CALL_CHAINS.md` before changing behavior behind an existing API or event.
-- Read `agents/REFERENCES.md` first for focused technical/business context.
-- Use subagents only for broad or risky cross-surface analysis; for narrow tasks, use references and source inspection sequentially.
+- 先读 `AGENTS.md`。
+- 技术类任务先读 `agents/technical.md`，再根据变更面读取一个或几个
+  `agents/technical/*.md`。
+- 如果涉及业务含义、状态流转、价格、支付、履约、审计或事件 payload，再读相关
+  `agents/business/*.md`。
+- 最后看源码和测试。文档只能导航，不能替代源码确认。
 
-## Commands
+当前代码 review：
 
-- Compile: `mvn compile`
-- Run tests: `mvn test`
-- Package: `mvn package`
+- 先用 `AGENTS.md` 判断项目边界，再进入 `agents/technical.md` 看验证命令。
+- 读 touched area 对应的 technical card。
+- review 行为变化时读 business card。
+- 不要求 reviewer 先读完整项目文档。
 
-Maven 输出要低上下文处理：agent 直接执行 Maven 时，优先使用 `-B -ntp`，
-把完整 stdout/stderr 重定向到 `target/agent-maven-logs/`，只把 pass/fail、
-测试数量、首个 actionable failure、Checkstyle/Jacoco failure、报告路径和下一步
-命令返回给 LLM 上下文。没有 `maven-runner` subagent 时也必须这样做。
+业务逻辑梳理：
 
-```bash
-mkdir -p target/agent-maven-logs
-mvn -B -ntp clean verify > target/agent-maven-logs/clean-verify.log 2>&1
-grep -E "Tests run:|BUILD SUCCESS|BUILD FAILURE|Total time|ERROR|FAILURE" target/agent-maven-logs/clean-verify.log | tail -40
-```
+- 优先读 `agents/business/`。
+- 技术卡片只用于定位实现入口、测试和持久化/消息副作用。
+- 业务事实不确定时写 `Needs confirmation`，不要把推测写成规则。
 
-## Change rules
+## AGENTS.md 建议内容
 
-- Keep controllers thin; put business decisions in service/application layer.
-- Update tests for the layer and chain touched by the change.
-- When adding or changing an endpoint, update the endpoint catalog and related call chain.
-- When adding a downstream call or message publication, document timeout/retry/error/idempotency behavior.
-```
-
-`agents/BACKEND_SURFACES.md` 按结构轴组织：
-
-```markdown
-# Backend Surfaces
-
-## Endpoints
-
-| Method | Path | Handler | Request | Response | Auth | Tests |
-| --- | --- | --- | --- | --- | --- | --- |
-| POST | `/orders` | `OrderController#create` | `CreateOrderRequest` | `OrderResponse` | user token | `OrderControllerTest` |
-| GET | `/orders/{id}` | `OrderController#getById` | path `id` | `OrderResponse` | user token | `OrderControllerTest` |
-
-## Services
-
-| Service | Role | Called by | Calls | Tests |
-| --- | --- | --- | --- | --- |
-| `OrderService` | order use cases | `OrderController` | `OrderRepository`, `PaymentClient`, `OrderEventPublisher` | `OrderServiceTest` |
-
-## Persistence
-
-| Repository | Entity | Storage | Used by | Notes |
-| --- | --- | --- | --- | --- |
-| `OrderRepository` | `Order` | JPA table `orders` | `OrderService` | owns order lookup and save |
-
-## Clients
-
-| Client | Downstream | Config key | Used by | Resilience notes |
-| --- | --- | --- | --- | --- |
-| `PaymentClient` | payment service | `clients.payment.base-url` | `OrderService` | timeout and error mapping required |
-
-## Pub/Sub
-
-| Direction | Binding/topic | Handler | Payload | Producer/consumer | Reliability notes |
-| --- | --- | --- | --- | --- | --- |
-| publish | `order-created-out-0` / `orders.created` | `OrderEventPublisher` | `OrderCreatedEvent` | producer | publish after order persisted |
-| consume | `inventory-reserved-in-0` / `inventory.reserved` | `InventoryReservedConsumer` | `InventoryReservedEvent` | consumer | idempotent by event id |
-```
-
-`agents/PROJECT_EVIDENCE.md` 用来保存 detector、Maven inspector、Spring
-inspector 等原始扫描证据。它可以稍长、偏机器可读；根目录 `AGENTS.md`
-和 `BACKEND_SURFACES.md` 则保持面向 agent 阅读和行动的摘要。
-
-`agents/CALL_CHAINS.md` 按链路轴组织：
-
-```markdown
-# Call Chains
-
-## POST /orders
-
-Confidence: `static + inferred`
-
-```mermaid
-sequenceDiagram
-  participant API as OrderController#create
-  participant SVC as OrderService#createOrder
-  participant DB as OrderRepository#save
-  participant PAY as PaymentClient#authorize
-  participant MQ as OrderEventPublisher#publishCreated
-
-  API->>SVC: validate and create command
-  SVC->>PAY: authorize payment
-  SVC->>DB: save order
-  SVC->>MQ: publish OrderCreatedEvent
-```
-
-Evidence:
-
-- endpoint: `OrderController#create`
-- service: `OrderService#createOrder`
-- persistence: `OrderRepository#save`
-- client: `PaymentClient#authorize`
-- pubsub: `OrderEventPublisher#publishCreated`
-- tests: `OrderControllerTest`, `OrderServiceTest`
-
-Change checklist:
-
-- If request/response changes, update API tests and OpenAPI docs.
-- If payment behavior changes, update client error mapping tests.
-- If persistence behavior changes, update repository/service tests.
-- If event payload changes, update producer and consumer contract tests.
-
-## inventory-reserved-in-0
-
-Confidence: `static + config`
-
-```mermaid
-sequenceDiagram
-  participant MQ as inventory.reserved topic
-  participant C as InventoryReservedConsumer
-  participant SVC as OrderService#markInventoryReserved
-  participant DB as OrderRepository#save
-
-  MQ->>C: InventoryReservedEvent
-  C->>SVC: mark inventory reserved
-  SVC->>DB: update order status
-```
-```
-
-## 抽取规则建议
-
-### Endpoint 抽取
-
-优先级：
-
-1. 如果项目已经有 OpenAPI 生成能力，读取或生成 `openapi.json`/`openapi.yaml`。
-2. 如果能安全运行应用并开启 actuator，读取 `/actuator/mappings`。
-3. 否则静态扫描 `@RestController`、`@Controller`、`@RequestMapping`、`@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`、`@PatchMapping`。
-
-记录字段：
-
-- HTTP method、path、consumes、produces。
-- handler class/method。
-- request body、path variable、query param。
-- response type。
-- validation annotations。
-- security annotations或 filter/interceptor 线索。
-- 对应测试文件。
-
-### Service 抽取
-
-扫描：
-
-- `@Service`、`@Component`、application/usecase package。
-- controller 构造器注入的 bean。
-- service 构造器注入的 repository、client、publisher。
-
-记录字段：
-
-- service class。
-- public methods。
-- called by 哪些 endpoint、consumer、scheduler。
-- calls 哪些 repository、client、publisher、其他 service。
-- transaction boundary：`@Transactional` 出现在哪一层。
-
-建议：
-
-- `AGENTS.md` 不要强行要求所有项目都使用 controller-service-repository 三层。
-- 如果项目按 feature/package/module 组织，文档应优先尊重现有边界。
-- 如果 service 很大，call chain 比“service 列表”更有用。
-
-### Persistence 抽取
-
-扫描：
-
-- `JpaRepository`、`CrudRepository`、`Repository`、`ReactiveCrudRepository`。
-- `@Entity`、`@Table`、`@Document`。
-- `@Query`、derived query method。
-- migration 文件：Flyway `db/migration`、Liquibase changelog。
-
-记录字段：
-
-- repository interface。
-- aggregate/entity。
-- storage type：JPA、Mongo、Redis、JDBC、R2DBC。
-- table/collection。
-- used by service。
-- custom query 和风险。
-- migration 文件位置。
-
-### Client 抽取
-
-扫描：
-
-- `RestClient`、`WebClient`、`RestTemplate`。
-- HTTP Service Client interface。
-- Feign client，如果项目使用 Spring Cloud OpenFeign。
-- config properties：base URL、timeout、retry、API key 名称，但不要记录 secret 值。
-
-记录字段：
-
-- client class/interface。
-- downstream service 名称。
-- method/path。
-- config key。
-- timeout/retry/circuit breaker/error mapping。
-- tests：WireMock、MockWebServer、mock server。
-
-### Pub/Sub 抽取
-
-扫描：
-
-- Spring Cloud Stream function bean：`Supplier`、`Function`、`Consumer`。
-- `spring.cloud.stream.bindings.*` 配置。
-- Kafka/Rabbit/Pulsar 注解或 listener：`@KafkaListener`、`@RabbitListener` 等。
-- event publisher：`StreamBridge`、`ApplicationEventPublisher`、KafkaTemplate、RabbitTemplate。
-
-记录字段：
-
-- direction：publish 或 consume。
-- binding/topic/queue。
-- handler。
-- payload class。
-- producer/consumer service。
-- retry、DLQ、consumer group、partition key。
-- idempotency key 和重复消息处理。
-
-### 调用链抽取
-
-调用链最好用“多证据合成”，不要只靠单一静态扫描。
-
-证据层级：
-
-1. `runtime`：OpenTelemetry trace、Spring Modulith observability、集成测试 trace。
-2. `framework-runtime`：actuator mappings、Spring bean graph、OpenAPI。
-3. `static`：Java AST、字节码 call graph、构造器注入关系。
-4. `config`：application.yml、stream bindings、client properties。
-5. `inferred`：命名和包结构推断。
-
-生成 `CALL_CHAINS.md` 时，每条链路都标注：
-
-```markdown
-Confidence: `runtime`
-Evidence sources:
-- `trace/order-create.json`
-- `openapi.yaml`
-- `src/main/java/.../OrderController.java`
-```
-
-如果证据不足，明确写：
-
-```markdown
-Confidence: `needs-confirmation`
-Missing evidence:
-- downstream timeout behavior was not found
-- event consumer tests were not found
-```
-
-## 对 AGENTS.md 的具体建议
-
-根目录 `AGENTS.md` 应该包含：
+根 `AGENTS.md` 建议包含：
 
 - 项目一句话定位。
-- 核心命令。
-- reference-first 加载规则：先读 `agents/REFERENCES.md`，再选 focused reference，最后看源码。
-- 哪里看结构轴：`agents/BACKEND_SURFACES.md`。
-- 哪里看链路轴：`agents/CALL_CHAINS.md`。
-- 何时使用 subagents：宽面分析、高风险变更、跨层影响、需要独立审阅。
-- 修改规则：改 endpoint、repository、client、pubsub、event payload 时分别要更新什么。
+- `Where To Look` 表格，把技术任务映射到 `agents/technical.md`，把业务任务映射到
+  `agents/business/`。
+- 不放高频命令、coding standards、validation 细节或 best practice demo；这些内容下放到
+  `agents/technical.md` 或 focused cards。
 
-根目录 `AGENTS.md` 不建议包含：
+不建议包含：
 
 - 完整 endpoint 列表。
 - 完整依赖树。
-- 大段泛用 Spring 最佳实践。
-- 推测出来但没有证据的调用链。
-- tool-specific subagent wrapper 的大段配置。
+- 大段通用 Spring 最佳实践。
+- 推测出来的调用链。
+- tool-specific subagent 配置。
 
-原因：AGENTS.md 是第一加载面，应该指导 agent 去正确的证据文件，而不是一次性塞满所有细节。
+## Technical Cards
 
-## Subagent 组织建议
+每个 `agents/technical/*.md` 都应该有 `Best Practices` 小节，并给出一个短的
+推荐写法 demo。demo 可以是 Java、YAML、SQL、Maven 命令或测试代码，但要贴近
+项目已有风格，不要写成泛用教程。
 
-推荐角色名使用 `*-specialist`，表示负责面而不是只读权限。例如：
+`agents/technical.md`：
 
-- `endpoint-specialist`：HTTP route、request/response、validation、OpenAPI、endpoint tests。可以在 wrapper 允许且父任务明确要求时做 endpoint 层实现。
-- `service-specialist`：业务编排、状态流转、异常、transaction boundary。
-- `persistence-specialist`：entity、repository、migration、Postgres/profile config。
-- `pubsub-specialist`：topic/config、payload、publish timing、retry/DLQ、idempotency。
-- `integration-specialist`：下游 client、外部系统、timeout/retry/error mapping。
-- `test-specialist`：JUnit 5、Mockito、Reactor/WebTestClient、JaCoCo、Checkstyle。
-- `maven-runner`：唯一默认允许执行 Maven 验证命令的角色，不编辑文件；负责
-  把完整 Maven 日志隔离到 `target/agent-maven-logs/`，只返回短摘要。
+- technical 目录页，作为 `AGENTS.md` 之后的下一层渐进披露。
+- 目录索引：按 endpoint、service、persistence、client、pubsub、integration、testing
+  链接到 `agents/technical/*.md`。
+- common Checkstyle：配置路径、`mvn -B -ntp checkstyle:check`、报告路径。
+- 各类 Maven 命令：编译、测试、targeted tests、verify、本地启动。
+- coding standards：constructor injection、`final`、records、imports、license
+  header、exception/problem details、logging、mapper、test fixture 等本地风格。
+- 需要 Docker/Testcontainers/profile/env var 的命令说明。
+- Maven 低上下文日志模式。
 
-每个 specialist 必须先读 `agents/SUBAGENTS.md` 和自己的
-`agents/subagents/*.md`，然后按 `agents/REFERENCES.md` 选择 focused
-reference。读完 reference 后，还要检查 reference 里列出的源码文件；不能只读
-reference 就给高置信结论。
+`agents/technical/endpoints.md`：
 
-Subagent 的收益是并行和独立视角，成本是重复上下文、更多 token、结果合并开销。
-因此默认策略是：窄任务先单 agent + references；宽任务再 coordinator +
-specialists。
+- 按接口维度组织，一接口一个小节，例如 `### POST /api/orders`。
+- 每个接口的方法和路径。
+- 文档地址，如果项目配置了 SpringDoc/OpenAPI/Swagger UI。
+- 所在 endpoint/controller/router class 和 method。
+- Request POJO、Response POJO、状态码、重要响应 header。
+- 每个接口用结构化 validation 表格整理 request body、path variable、query
+  parameter、request header validations。
+- validation、status code、problem details、OpenAPI/SpringDoc 线索。
+- 如果当前没有 `@RequestHeader` 或 header validation，要明确写“没有”。
+- endpoint 层该保持薄还是承载业务逻辑，以现有代码为准。
 
-## 生成器落地建议
+`agents/technical/services.md`：
 
-给 `init-project` 增加 Spring Boot 后端 inspector，可以输出：
+- service/application 层入口。
+- collaborator 边界、transaction 假设、状态流转、事件发布时间点。
+- blocking 调用在 reactive 项目里的隔离方式。
 
-```json
-{
-  "backendSurfaces": {
-    "endpoints": [],
-    "services": [],
-    "repositories": [],
-    "clients": [],
-    "pubsub": []
-  },
-  "callChains": [],
-  "evidence": {
-    "openapi": null,
-    "actuatorMappings": null,
-    "staticScan": [],
-    "configFiles": []
-  }
-}
-```
+`agents/technical/persistence.md`：
 
-分阶段实现：
+- entity、repository、migration、profile config、table/column 线索。
+- JPA/Hibernate、R2DBC、Flyway/Liquibase 等相关注意点。
 
-1. 先做静态扫描：controllers、services、repositories、clients、stream bindings。
-2. 再做结构文档：生成 `BACKEND_SURFACES.md`。
-3. 再做候选调用链：从 controller -> injected service -> injected repository/client/publisher。
-4. 加 confidence 标记，不确定就写 `inferred` 或 `needs-confirmation`。
-5. 如果项目能运行，再接入 actuator mappings、OpenAPI 或 runtime trace 作为更强证据。
-6. 最后考虑 Spring Modulith 或 ArchUnit，把模块边界变成可验证规则。
+`agents/technical/clients.md`：
+
+- 按下游接口维度组织，一个 downstream API 一个小节。
+- 每个下游接口写 host/base URL config key、默认 host、client class/method。
+- HTTP method、path、Request POJO、Response POJO、request/response header。
+- 用结构化 validation 表格整理 body、path variable、query parameter、header 要求。
+- timeout/retry/error mapping 有证据才写；没有配置时明确写没有。
+- 写明覆盖 host/path/method/serialization/error handling 的测试。
+
+`agents/technical/integrations.md`：
+
+- outbound HTTP/client、数据库、缓存、消息系统、外部配置。
+- timeout/retry/error mapping/idempotency 只有有证据才写。
+
+`agents/technical/pubsub.md`：
+
+- topic/binding/config key、producer/consumer、payload、retry/DLQ 线索。
+- 事件 payload 是跨系统契约，改动时同步测试和业务卡片。
+
+`agents/technical/testing.md`：
+
+- JUnit 5、Mockito、WebTestClient、StepVerifier、JaCoCo、Checkstyle。
+- 每类变更应该优先跑哪些 targeted tests。
+
+## Business Cards
+
+业务卡片描述“系统为什么这样做”，不是重复代码结构。
+
+适合写入：
+
+- domain terms。
+- 状态机和允许/禁止的状态迁移。
+- 定价、促销、支付、履约、退货、客服、审计等规则。
+- 事件含义和消费者依赖。
+- API use case 的业务语义。
+
+不适合写入：
+
+- controller/service/repository 文件清单。
+- 没有代码、测试、产品文档或用户确认支撑的政策规则。
+- “可能”“应该”的猜测，除非明确标注 `Needs confirmation`。
+
+## 可选深文档
+
+只有在用户明确要求，或项目确实很大且维护收益高于成本时，才考虑增加：
+
+- call chain map。
+- backend surface catalog。
+- raw evidence/audit trail。
+- subagent role files。
+- `.codex/`、`.opencode/`、`.github/` tool wrapper。
+
+这些文件一旦默认生成，会增加每次代码变更后的同步成本，所以不作为默认产物。
+
+## 可用事实来源
+
+- Spring MVC/WebFlux mapping 注解：`@RequestMapping`、`@GetMapping`、
+  `@PostMapping` 等。参考：
+  [Spring Framework Mapping Requests](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html)。
+- Spring Boot Actuator mappings：运行后可通过 `/actuator/mappings` 查看映射。
+  参考：
+  [Spring Boot mappings endpoint](https://docs.spring.io/spring-boot/api/rest/actuator/mappings.html)。
+- OpenAPI/SpringDoc：可从配置、类结构和注解推断 API 语义。参考：
+  [springdoc-openapi](https://springdoc.org/)。
+- Persistence：Spring Data repository interface 绑定 domain class 和 ID 类型。
+  参考：
+  [Spring Data JPA repositories](https://docs.spring.io/spring-data/jpa/reference/repositories/definition.html)。
+- Client：Spring `RestClient`、`WebClient`、HTTP Service Clients。参考：
+  [Spring REST Clients](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html) 和
+  [Spring WebClient](https://docs.spring.io/spring-framework/reference/web/webflux-webclient.html)。
+- Pub/Sub：Spring Cloud Stream binder、binding、message、consumer group、
+  partitioning。参考：
+  [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream/)。
 
 ## 反模式
 
-- 只按 controller/service/repository 三层列目录，不写具体入口和下游关系。
-- 把所有 Spring 最佳实践放进 `AGENTS.md`，导致未来 agent 每次都加载无关内容。
-- 生成看似确定的调用链，但没有标注证据来源。
-- 忽略消息系统，导致 HTTP 链路之外的业务行为丢失。
-- 忽略 outbound client 的 timeout、retry、error mapping。
-- 把 secrets、token、真实密码写进 agent 文档。
-
-## 最小可用版本
-
-如果只能先实现一个版本，建议生成这三份：
-
-```text
-AGENTS.md
-agents/REFERENCES.md
-agents/BACKEND_SURFACES.md
-agents/CALL_CHAINS.md
-```
-
-其中：
-
-- `AGENTS.md` 负责告诉 agent 先读哪份文件。
-- `REFERENCES.md` 负责把 technical/business 上下文拆成可渐进加载的索引。
-- `BACKEND_SURFACES.md` 负责按 endpoint、service、persistence、client、pubsub 列事实。
-- `CALL_CHAINS.md` 负责按业务入口列链路，并给每条链路标注证据和置信度。
+- 为了“看起来完整”生成一堆未来没人维护的大文档。
+- 把 `BUILD_AND_TEST.md`、`CODE_STYLE.md` 放在 agents 根目录，和 focused
+  technical cards 分裂。
+- 把业务规则藏在 technical 文档里，导致业务梳理必须读技术细节。
+- 只写证据，不写 agent 实际该去哪里改代码和跑测试。
+- 生成 tool wrapper，却没有明确使用场景。

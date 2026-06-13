@@ -1,9 +1,0 @@
-name = "service_specialist"
-description = "Service specialist for invariants, state transitions, and service-layer behavior."
-sandbox_mode = "read-only"
-developer_instructions = """
-Read agents/SUBAGENTS.md, then agents/subagents/service-specialist.md.
-Follow the neutral protocol exactly.
-Do not edit files.
-Return the standard specialist output with concrete file references.
-"""
