@@ -2,6 +2,8 @@
 
 This document compares the current playground evaluation runs for generated agent documentation, progressive references, and subagent usage.
 
+For the broader multi-scenario simulation, planning-scheme comparison, and UT/API verification summary, see `agents/SUBAGENT_SCENARIO_REPORT.md`.
+
 ## Summary
 
 The tests show a clear pattern:
@@ -174,9 +176,64 @@ Observed weaknesses:
 - `requestedShipDate` semantics were underspecified. The implementation treated it as nullable echo-only data.
 - The Maven Runner role existed in docs, but the generic worker executed Maven directly. Tool-native wrapper behavior still needs a separate eval.
 
+### Scenario D: Single Agent Reference-Only Replay
+
+Method:
+
+- Created a temporary copy of the playground project.
+- Removed the shipping-priority implementation from the temporary copy to create a pre-change code state.
+- Did not spawn any subagents.
+- Followed the reference-only load path: `AGENTS.md`, `agents/REFERENCES.md`, focused technical references, focused business references, then source files.
+- Implemented the same feature in the temporary copy.
+- Ran targeted and full Maven verification.
+
+Measured wall-clock cost:
+
+- Elapsed time from first doc read to full verification completion: 165 seconds.
+- Token count was not captured because this replay was run in the main thread without a goal-level token counter or subagent accounting.
+
+Important limitation:
+
+This was an optimistic replay, not a strict historical A/B test. The main thread already had prior knowledge of the feature, and the temporary copy used the repaired references from after Scenario C. In particular, the business references already mentioned shipping priority, manual review, and `HAZ-` behavior.
+
+Effect:
+
+- Implemented the same production and test surfaces as Scenario C.
+- Targeted tests passed on the first run.
+- Full verification passed on the first run.
+- Diff spot checks against the committed Scenario C implementation showed matching core service, entity, and service-test content.
+
+Verification:
+
+```bash
+mvn -Dtest=OrderServiceTest,OrderEndpointTest,GcpPubSubOrderEventPublisherTest,NoopOrderEventPublisherTest test
+mvn clean verify
+```
+
+Result:
+
+- Baseline temporary copy before replay: 13 targeted tests passed.
+- Replay targeted tests passed: 16 tests.
+- Replay full verification passed: 26 tests.
+- Checkstyle: 0 violations.
+- JaCoCo: coverage gate met.
+
+Observed strengths:
+
+- Fastest implementation path after references were repaired.
+- No result-merging overhead.
+- Progressive references were enough to guide the implementation.
+- Main-thread implementation avoided cross-agent coordination cost.
+
+Observed weaknesses:
+
+- No independent impact checklist.
+- Higher risk of missing Pub/Sub, persistence, or documentation surfaces if references are stale.
+- The result is biased by prior context and repaired docs, so it should not replace a true fresh-thread no-subagent eval.
+
 ### Test Case 2 Conclusion
 
-For complex implementation, the strongest observed pattern is:
+For complex implementation, the safest observed pattern is:
 
 ```text
 1 worker agent for implementation
@@ -186,6 +243,8 @@ main agent for integration, source review, and final verification
 
 This pattern is more expensive than single-agent implementation, but it reduces missed-surface risk. The explorer is especially useful because it creates an independent checklist before final review.
 
+The fastest observed pattern is single-agent reference-only implementation, but the replay was optimistic. Use it when references are fresh and the task owner accepts the reduced independent review.
+
 ## Comparative Table
 
 | Test case | Scenario | Agent pattern | Approx tokens | Approx time | Result quality | Best use |
@@ -193,6 +252,7 @@ This pattern is more expensive than single-agent implementation, but it reduces 
 | Impact analysis | Parallel subagents | 4 read-only specialists | 20.4k | 177s | Broad, independent, more duplication | Wide or risky analysis |
 | Impact analysis | Reference-only | 1 explorer, no subagents | 7.6k | 138s | Compact and correct for narrow scope | Focused analysis |
 | Implementation | Worker + explorer | 1 worker + 1 read-only explorer | 256k goal total | 595s | Successful implementation plus independent checklist | Cross-surface code changes |
+| Implementation replay | Reference-only | main agent, no subagents | not captured | 165s | Successful, but optimistic replay | Fresh refs, lower-risk implementation |
 
 ## Practical Guidance
 
@@ -234,4 +294,3 @@ These evals support the following `init-project` skill rules:
 - Default to reference-only mode for narrow work.
 - Use subagents for broad, risky, ambiguous, or cross-surface work.
 - After code-changing work, update affected references so future zero-context agents are not guided by stale business context.
-

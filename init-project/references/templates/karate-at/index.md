@@ -6,7 +6,7 @@ Use this template when the project or a meaningful part of the project uses Kara
 
 Strong signals:
 
-- Dependencies include `com.intuit.karate`, `karate-core`, `karate-junit5`, or related Karate artifacts.
+- Dependencies include `com.intuit.karate`, `io.karatelabs`, `karate-core`, `karate-junit5`, or related Karate artifacts.
 - `.feature` files exist, usually under `src/test/java` or `src/test/resources`.
 - Java runner classes invoke Karate.
 - Project naming, README, or CI labels mention AT, acceptance tests, API tests, contract tests, regression tests, or Karate.

@@ -15,6 +15,7 @@ This project uses reusable references, neutral subagent protocols, and thin tool
 - Specialist names describe ownership, not permission. A specialist may edit only when the parent task asks for implementation and the active wrapper permits edits.
 - The coordinator owns final decisions, cross-surface tradeoffs, and merge conflict resolution.
 - The Maven Runner is the only subagent intended to run build/test commands. It must not edit files.
+- When Maven Runner is unavailable, the coordinator may run Maven directly, but must redirect full logs to `target/agent-maven-logs/` and return only summarized output.
 - This playground experiment avoids additional inspector tools. Agents should use repository files, code search, and existing build/test commands only.
 - For this experiment, parent sessions should not enable extra MCP, web, LSP, skill, or generated analyzer tools for specialist agents unless the user explicitly asks.
 
@@ -72,12 +73,13 @@ The Maven Runner should return:
 ```text
 Commands:
 - mvn ...
+- Full log: target/agent-maven-logs/<name>.log
 
 Result:
 - pass | fail | blocked
 
 Important output:
-- Short excerpts only: failing test names, Checkstyle files, coverage rule failures, or build lifecycle error.
+- Short excerpts only: test counts, failing test names, Checkstyle files, coverage rule failures, or build lifecycle error.
 
 Artifacts:
 - Generated report paths such as target/site/jacoco/index.html, when relevant.

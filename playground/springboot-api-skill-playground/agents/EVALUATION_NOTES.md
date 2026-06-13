@@ -139,3 +139,57 @@ Follow-up improvements from this run:
 - Keep business references explicit about confirmed source evidence versus product policy.
 - After code-changing evals, update affected references so future zero-context agents are not guided by stale business language.
 - For tool-native subagent evals, test the wrapper path separately from generic worker delegation.
+
+## Run 4: Scenario 2 Reference-Only Replay
+Method:
+- Created a temporary copy of the playground project.
+- Removed the shipping-priority implementation from the temporary copy to recreate a pre-change code state.
+- Did not spawn any subagents.
+- Loaded `AGENTS.md`, `agents/REFERENCES.md`, focused technical references, focused business references, then source files.
+- Implemented the same order shipping-priority feature in the temporary copy.
+
+Measured wall-clock cost:
+- Start timestamp: 1781282313
+- End timestamp: 1781282478
+- Elapsed replay time: 165 seconds
+- Token count: not captured because this was a main-thread replay without goal-level token accounting.
+
+Verification:
+- Baseline temporary copy before replay: `mvn -Dtest=OrderServiceTest,OrderEndpointTest,GcpPubSubOrderEventPublisherTest,NoopOrderEventPublisherTest test` passed with 13 tests.
+- Replay targeted command passed with 16 tests.
+- Replay full command `mvn clean verify` passed with 26 tests, Checkstyle clean, and JaCoCo coverage met.
+
+Correctness:
+- The replay implemented the same core production and test surfaces as Run 3.
+- Diff spot checks against the committed implementation showed matching `OrderService`, `OrderEntity`, and `OrderServiceTest` content.
+
+Observed strengths:
+- Fastest implementation path after references were repaired.
+- No result-merging overhead.
+- Progressive references were enough for endpoint, service, persistence, Pub/Sub, and test changes.
+
+Observed weaknesses:
+- This was not a strict fresh-thread A/B test: the main thread had prior context.
+- The temporary copy used references repaired after Run 3, so it was easier than the original worker run.
+- No independent checklist means stale references can still cause missed surfaces.
+
+## Run 5: Multi-Scenario Planning And Verification
+Method:
+- Spawned read-only planning specialists with `fork_context=false`.
+- One specialist produced a requirement scenario matrix.
+- One specialist compared subagent topology choices.
+- One specialist mapped UT and API/AT-style verification commands.
+- Main thread merged the outputs into `agents/SUBAGENT_SCENARIO_REPORT.md`.
+
+Verification:
+- UT group passed: `mvn -Dtest=OrderServiceTest,RetailDomainServicesTest,GcpPubSubOrderEventPublisherTest,NoopOrderEventPublisherTest test`
+- API/AT-style group passed: `mvn -Dtest=OrderEndpointTest,RetailOperationsEndpointTest test`
+- Full gate passed: `mvn clean verify`
+
+Observed strengths:
+- The scenario matrix made it easier to choose between no-subagent, read-only specialists, worker-plus-explorer, and Maven-runner patterns.
+- Separating role protocols from reference docs preserved a no-subagent fallback for tools without native subagent support.
+
+Observed weaknesses:
+- This run simulated planning and verification strategy; it did not implement every scenario in the matrix.
+- API/AT-style tests remain controller-level checks rather than full deployed-environment acceptance tests.

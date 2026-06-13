@@ -4,19 +4,19 @@
     {
       "id": 1,
       "prompt": "Initialize this Java service repo for future Codex agents. It has a pom.xml with Spring Boot 3 and spring-boot-starter-webflux, but I did not specify a template. Please scan the repo, choose the right template, and create AGENTS.md plus agents reference files.",
-      "expected_output": "The skill should inspect pom.xml and representative source/test files, select baseline, maven-java, and springboot3-webflux, use render_agents_docs.py or equivalent output structure to create root AGENTS.md and agents/*.md drafts, use the Spring WebFlux inspector or equivalent static evidence to document application classes/controllers/reactive sources/config/tests, refine docs with only the matched template references, and mark uncertain commands as inferred or needing confirmation.",
+      "expected_output": "The skill should inspect pom.xml and representative source/test files, select baseline, maven-java, and springboot3-webflux, use matched template references plus structured inspector evidence to create root AGENTS.md and agents/*.md drafts, use the Spring WebFlux inspector or equivalent static evidence to document application classes/controllers/reactive sources/config/tests, refine docs with only the matched template references, and mark uncertain commands as inferred or needing confirmation.",
       "files": []
     },
     {
       "id": 2,
       "prompt": "给这个 karate API 自动化测试项目初始化 agent 文档。项目里有 pom.xml、karate-config.js、很多 .feature 文件和 JUnit runner。请生成 AGENTS.md 和相关 agents 参考文件，以后 agent 能知道怎么跑 smoke/regression/tag 测试。",
-      "expected_output": "The skill should detect baseline, maven-java, and karate-at, use render_agents_docs.py or equivalent output structure, use the Karate inspector or equivalent static evidence to document feature files, tags, runner classes, karate-config.js, environment hints, fixtures, and tag/env/test command conventions, and avoid loading the Spring WebFlux template unless service signals are present.",
+      "expected_output": "The skill should detect baseline, maven-java, and karate-at, use matched template references plus structured inspector evidence, use the Karate inspector or equivalent static evidence to document feature files, tags, runner classes, karate-config.js, environment hints, fixtures, and tag/env/test command conventions, and avoid loading the Spring WebFlux template unless service signals are present.",
       "files": []
     },
     {
       "id": 3,
       "prompt": "Use the Maven Java and SpringBoot3 WebFlux templates explicitly for /tmp/payments-service and refresh its existing AGENTS.md. Keep any project-specific notes already there, but add missing build/test/code-style/architecture references under agents/.",
-      "expected_output": "The skill should honor baseline plus the explicit maven-java and springboot3-webflux templates after verifying minimal signals, use render_agents_docs.py with explicit --template facets or equivalent logic, read existing AGENTS.md before editing, use the renderer only where it will not overwrite user-authored guidance unless explicitly requested, merge rather than overwrite existing notes, and create/update supporting agents reference files.",
+      "expected_output": "The skill should honor baseline plus the explicit maven-java and springboot3-webflux templates after verifying minimal signals, read existing AGENTS.md before editing, merge rather than overwrite user-authored guidance, and create/update supporting agents reference files from matched template references and project evidence.",
       "files": []
     },
     {

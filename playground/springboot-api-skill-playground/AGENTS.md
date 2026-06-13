@@ -40,6 +40,7 @@ Do not read every file in this list up front. Start with this root file, then lo
 - Preserve public APIs, data contracts, and migration behavior unless the task explicitly changes them.
 - Add or update focused tests for behavior changes.
 - Run the smallest useful verification command first, then broader checks when risk warrants it.
+- When running Maven directly, use the low-context log protocol in `agents/BUILD_AND_TEST.md` instead of streaming full build output into the agent context.
 - Document any verification you could not run and why.
 - Do not commit secrets, credentials, generated build output, or local machine state.
 - Ask before adding new production dependencies or changing build/deploy behavior.

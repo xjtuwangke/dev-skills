@@ -16,8 +16,9 @@ changes.
 ## init-project
 
 `init-project` creates durable project memory for future coding agents. It can
-scan a target project, detect matching templates, and render a concise root
-`AGENTS.md` plus supporting reference files.
+scan a target project, detect matching templates, and guide the LLM to create a
+concise root `AGENTS.md` plus supporting reference files from template guidance
+and structured evidence.
 
 Supported template facets:
 
@@ -42,12 +43,6 @@ Detect a target project:
 
 ```bash
 python3 init-project/scripts/detect_project.py /path/to/project
-```
-
-Render project agent docs:
-
-```bash
-python3 init-project/scripts/render_agents_docs.py /path/to/project
 ```
 
 Inspect a Maven project:
@@ -84,4 +79,3 @@ Before committing:
 python3 init-project/scripts/validate_skill.py
 git diff --check
 ```
-

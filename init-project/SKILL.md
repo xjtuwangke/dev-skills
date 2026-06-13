@@ -122,21 +122,18 @@ If dependency analysis is relevant, the `maven-java` template also provides:
 python3 /path/to/init-project/scripts/templates/maven-java/generate_dependency_tree.py /path/to/project
 ```
 
-To create the first draft of all project agent docs after detection, use:
+Do not use a generic document renderer. Use Python only for detection and
+evidence extraction. The LLM should create or merge `AGENTS.md` and `agents/*`
+directly from:
 
-```bash
-python3 /path/to/init-project/scripts/render_agents_docs.py /path/to/project
-```
+- matched template reference files,
+- inspector JSON output,
+- existing project docs,
+- representative source/config/test files.
 
-For user-specified templates, pass explicit facets:
-
-```bash
-python3 /path/to/init-project/scripts/render_agents_docs.py /path/to/project \
-  --template maven-java \
-  --template springboot3-webflux
-```
-
-The renderer writes conservative drafts for `AGENTS.md`, `agents/*.md`, focused reference files, and optional tool-specific subagent wrappers using detected or explicit facets and structured template inspection. It always includes `baseline`, skips existing files unless `--overwrite` is passed, and can accept comma-separated templates such as `--template maven-java,springboot3-webflux`. After rendering, read the created files and refine them with project-specific facts from the matching template references.
+Write concise project-specific docs. Keep raw evidence in
+`agents/PROJECT_EVIDENCE.md` when it helps future agents verify why a fact was
+recorded. Mark unsupported guesses as "Needs confirmation".
 
 For Spring Boot backend projects, use reference-first progressive disclosure by
 default. `AGENTS.md` should route future agents to `agents/REFERENCES.md` and
@@ -241,7 +238,7 @@ evidence exists:
 
 `agents/BACKEND_SURFACES.md`
 : Endpoint, service, persistence, outbound client, pub/sub, config, and test
-  catalogs generated from project evidence. For Maven Spring Boot API services,
+  catalogs created from project evidence. For Maven Spring Boot API services,
   include environment profiles, Flyway migrations, JPA/Hibernate repositories
   and entities, SpringDoc/OpenAPI clues, Pub/Sub topic/config hints, and unit
   test locations when detected.
@@ -280,6 +277,12 @@ Default specialist posture:
   implementation-capable later by changing native wrappers intentionally.
 - `maven-runner` is the only generated role intended to execute Maven
   verification commands. Other specialists recommend commands.
+- Maven output must be low-context by default. Maven references
+  should tell agents to prefer `-B -ntp`, redirect full stdout/stderr to
+  `target/agent-maven-logs/`, and return only pass/fail, test counts, first
+  actionable failures, Checkstyle/Jacoco failures, report paths, and next
+  commands. This applies especially when no Maven Runner subagent is
+  available and the coordinator runs Maven directly.
 - Every specialist should inspect source files after reading references before
   giving confidence above medium.
 - After a specialist or single agent changes source, update the affected
@@ -292,7 +295,10 @@ After writing files:
 
 1. Re-read the created files.
 2. Check that every command is either verified from project files or marked as inferred.
-3. Run a lightweight validation when safe, such as `mvn -q -DskipTests test` only if it is appropriate for the project and not obviously expensive.
+3. Run a lightweight validation when safe, using the generated low-context
+   Maven protocol when Maven is involved, such as `mvn -B -ntp -DskipTests
+   test > target/agent-maven-logs/skip-tests.log 2>&1` only if it is
+   appropriate for the project and not obviously expensive.
 4. At minimum, run:
 
 ```bash
@@ -307,7 +313,7 @@ For skill development or regression checks, run the bundled self-validation:
 python3 /path/to/init-project/scripts/validate_skill.py
 ```
 
-It creates temporary Maven, Spring Boot WebFlux, and Karate projects, then verifies detection, explicit template rendering, generated documentation content, Maven POM inspection, dependency exclusions, and dependency-tree JSON generation with a fake Maven executable.
+It creates temporary Maven, Spring Boot WebFlux, and Karate projects, then verifies detection, template inspectors, Maven POM inspection, dependency exclusions, and dependency-tree JSON generation with a fake Maven executable.
 
 ## Output Quality Bar
 

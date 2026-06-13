@@ -1,0 +1,7 @@
+{
+  "customerId": "customer-at-001",
+  "sku": "SKU-AT-001",
+  "quantity": 2,
+  "shippingPriority": "EXPEDITED",
+  "requestedShipDate": "2026-02-05"
+}

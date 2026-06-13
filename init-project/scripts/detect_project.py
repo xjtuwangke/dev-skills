@@ -195,7 +195,7 @@ def detect(root: Path) -> dict:
         signals["springboot3-webflux"].append("application*.yml/yaml config found")
         scores["springboot3-webflux"] += 1
 
-    if has_dep(pom, "com.intuit.karate", None):
+    if has_dep(pom, "com.intuit.karate", None) or has_dep(pom, "io.karatelabs", None):
         signals["karate-at"].append("Karate dependency found")
         scores["karate-at"] += 4
 

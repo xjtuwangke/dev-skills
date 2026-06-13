@@ -14,7 +14,6 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT = SCRIPT_DIR.parent
 DETECTOR = SCRIPT_DIR / "detect_project.py"
-RENDERER = SCRIPT_DIR / "render_agents_docs.py"
 MAVEN_INSPECTOR = SCRIPT_DIR / "templates" / "maven-java" / "inspect_maven_project.py"
 DEPS_TREE = SCRIPT_DIR / "templates" / "maven-java" / "generate_dependency_tree.py"
 SPRING_INSPECTOR = SCRIPT_DIR / "templates" / "springboot3-webflux" / "inspect_springboot_webflux.py"
@@ -161,69 +160,8 @@ def validate_webflux(project: Path) -> None:
     spring = run_json([sys.executable, str(SPRING_INSPECTOR), str(project)])
     assert any("PaymentApplication.java" in item for item in spring["application_classes"])
     assert any("PaymentController.java" in item for item in spring["controllers_or_handlers"])
-
-    render = run_json([sys.executable, str(RENDERER), str(project)])
-    assert render["matched_templates"] == ["baseline", "maven-java", "springboot3-webflux"]
-    architecture = (project / "agents/ARCHITECTURE_NOTES.md").read_text(encoding="utf-8")
-    profile = (project / "agents/PROJECT_PROFILE.md").read_text(encoding="utf-8")
-    evidence = (project / "agents/PROJECT_EVIDENCE.md").read_text(encoding="utf-8")
-    surfaces = (project / "agents/BACKEND_SURFACES.md").read_text(encoding="utf-8")
-    call_chains = (project / "agents/CALL_CHAINS.md").read_text(encoding="utf-8")
-    agents_md = (project / "AGENTS.md").read_text(encoding="utf-8")
-    references = (project / "agents/REFERENCES.md").read_text(encoding="utf-8")
-    subagents = (project / "agents/SUBAGENTS.md").read_text(encoding="utf-8")
-    endpoint_ref = (project / "agents/references/technical/endpoints.md").read_text(encoding="utf-8")
-    business_ref = (project / "agents/references/business/domain-overview.md").read_text(encoding="utf-8")
-    workflow = (project / "agents/workflows/BACKEND_ANALYSIS.md").read_text(encoding="utf-8")
-    endpoint_role = (project / "agents/subagents/endpoint-specialist.md").read_text(encoding="utf-8")
-    maven_role = (project / "agents/subagents/maven-runner.md").read_text(encoding="utf-8")
-    codex_wrapper = (project / ".codex/agents/endpoint-specialist.toml").read_text(encoding="utf-8")
-    opencode_wrapper = (project / ".opencode/agents/backend-coordinator.md").read_text(encoding="utf-8")
-    github_wrapper = (project / ".github/agents/backend-coordinator.agent.md").read_text(encoding="utf-8")
-    github_prompt = (project / ".github/prompts/backend-analysis.prompt.md").read_text(encoding="utf-8")
-    assert "PaymentApplication.java" in architecture
-    assert "PaymentController.java" in architecture
-    assert "PaymentClient.java" in architecture
-    assert "PaymentControllerTest.java" in architecture
-    assert "/health" in surfaces
-    assert "PaymentController#health" in call_chains
-    assert '"endpoints"' in evidence
-    assert "Representative Feature Files\n- None detected" in architecture
-    assert "com.example.payments" in profile
-    assert "## Karate Evidence" not in profile
-    assert '"karate-at": []' not in profile
-    assert "reference-first progressive disclosure" in agents_md
-    assert "agents/REFERENCES.md" in agents_md
-    assert "Technical References" in references
-    assert "Business References" in references
-    assert "PaymentController#health" in endpoint_ref
-    assert "Generated status: Needs confirmation" not in business_ref
-    assert "Domain Clues" in business_ref
-    assert "Parallelize only when independent review is worth" in workflow
-    assert "Endpoint Specialist" in endpoint_role
-    assert "Source inspection" in endpoint_role
-    assert "Maven Runner" in maven_role
-    assert "sandbox_mode = \"workspace-write\"" in codex_wrapper
-    assert "endpoint-specialist: allow" in opencode_wrapper
-    assert "backend-coordinator" in github_wrapper
-    assert "backend-coordinator" in github_prompt
-    generated_text = "\n".join(
-        [
-            agents_md,
-            references,
-            subagents,
-            endpoint_ref,
-            business_ref,
-            workflow,
-            endpoint_role,
-            maven_role,
-            codex_wrapper,
-            opencode_wrapper,
-            github_wrapper,
-            github_prompt,
-        ]
-    )
-    assert "analyst" not in generated_text.lower()
+    assert any("PaymentClient.java" in item for item in spring["web_clients"])
+    assert any("PaymentControllerTest.java" in item.get("source", "") for item in spring["tests"])
 
 
 def validate_karate(project: Path) -> None:
@@ -231,21 +169,9 @@ def validate_karate(project: Path) -> None:
     assert detection["matched_templates"] == ["baseline", "maven-java", "karate-at"]
     karate = run_json([sys.executable, str(KARATE_INSPECTOR), str(project)])
     assert "@smoke" in karate["tags"]
+    assert "@payments" in karate["tags"]
     assert any("PaymentsRunner.java" in item for item in karate["runner_classes"])
-
-    render = run_json([sys.executable, str(RENDERER), str(project)])
-    assert render["matched_templates"] == ["baseline", "maven-java", "karate-at"]
-    architecture = (project / "agents/ARCHITECTURE_NOTES.md").read_text(encoding="utf-8")
-    build = (project / "agents/BUILD_AND_TEST.md").read_text(encoding="utf-8")
-    assert "@payments" in architecture
-    assert "PaymentsRunner.java" in architecture
-    assert "create-payment.json" in architecture
-    assert "@smoke" in build
-    assert "`dev`" in build
-    assert "mvn test -Dtest=PaymentsRunner" in build
-    profile = (project / "agents/PROJECT_PROFILE.md").read_text(encoding="utf-8")
-    assert "## Spring Boot WebFlux Evidence" not in profile
-    assert '"springboot3-webflux": []' not in profile
+    assert any("create-payment.json" in item for item in karate["fixtures"])
 
 
 def validate_maven(project: Path, fake_mvn: Path) -> None:
@@ -261,33 +187,13 @@ def validate_maven(project: Path, fake_mvn: Path) -> None:
     assert tree["runs"][0]["tree"]["children"][0]["artifactId"] == "junit-jupiter-api"
 
 
-def validate_explicit_template(root: Path) -> None:
-    project = root / "explicit"
-    write(
-        project / "pom.xml",
-        """<project xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.example</groupId><artifactId>explicit-demo</artifactId><version>1.0.0</version>
-  <properties><java.version>17</java.version></properties>
-</project>
-""",
-    )
-    write(project / "src/main/java/com/example/App.java", "package com.example; class App {}\n")
-    render = run_json(
-        [
-            sys.executable,
-            str(RENDERER),
-            str(project),
-            "--template",
-            "maven-java,springboot3-webflux",
-        ]
-    )
-    assert render["matched_templates"] == ["baseline", "maven-java", "springboot3-webflux"]
-    bad = run_json(
-        [sys.executable, str(RENDERER), str(project), "--template", "nope"],
-        allow_fail=True,
-    )
-    assert "Unsupported template" in bad["error"]
+def validate_baseline_only(root: Path) -> None:
+    project = root / "baseline"
+    write(project / "README.md", "# Baseline\n")
+
+    detection = run_json([sys.executable, str(DETECTOR), str(project)])
+    assert detection["matched_templates"] == ["baseline"]
+    assert detection["primary_purpose"] == "generic-project"
 
 
 def validate_business_fixture() -> None:
@@ -365,7 +271,6 @@ def main() -> int:
             "-m",
             "py_compile",
             str(DETECTOR),
-            str(RENDERER),
             str(MAVEN_INSPECTOR),
             str(DEPS_TREE),
             str(SPRING_INSPECTOR),
@@ -379,7 +284,7 @@ def main() -> int:
         validate_karate(make_karate(temp_root))
         maven_project, fake_mvn = make_multimodule(temp_root)
         validate_maven(maven_project, fake_mvn)
-        validate_explicit_template(temp_root)
+        validate_baseline_only(temp_root)
 
     validate_business_fixture()
 

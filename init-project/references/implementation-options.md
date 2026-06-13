@@ -101,14 +101,14 @@ What changes:
 
 - Keep `AGENTS.md` short: commands, repo layout, test policy, and links to
   generated evidence files.
-- Add length and noise budgets to the renderer or validator.
+- Add length and noise budgets to the generation workflow or validator.
 - Prefer generated facts over generic rules.
 
 Pros:
 
 - Best aligned with Codex instruction-size limits and research caution about
   context bloat.
-- Easy to implement from the current renderer.
+- Easy to implement with the current template references and inspectors.
 - Keeps the first context load cheap and stable.
 
 Cons:
@@ -159,11 +159,10 @@ Cons:
 
 Implementation plan:
 
-1. Add `--emit-scoped` to `render_agents_docs.py`.
-2. Extend inspectors to return candidate scopes:
+1. Extend inspectors to return candidate scopes:
    `main_sources`, `test_sources`, `karate_features`, `webflux_handlers`.
-3. Render template fragments only into matching scopes.
-4. Add dry-run output showing each generated file and why it was emitted.
+2. Apply template guidance only to matching scopes.
+3. Add a manual checklist showing each suggested file and why it should exist.
 
 Test plan:
 
@@ -345,4 +344,3 @@ Test plan:
 | V5 verification and eval loop | High | Medium | Fixture maintenance | 4 |
 | V4 repo map enhancement | Medium | High | Parser complexity and stale maps | 5 |
 | V6 template registry | Low now, high later | Medium | Premature schema overhead | 6 |
-

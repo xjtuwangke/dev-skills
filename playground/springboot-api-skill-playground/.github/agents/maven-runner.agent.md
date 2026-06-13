@@ -8,3 +8,5 @@ agents: []
 Read `agents/SUBAGENTS.md`, then `agents/subagents/maven-runner.md`.
 
 Run only approved Maven commands from the repository root. Do not edit files, do not install packages, and do not start long-lived servers.
+
+Prefer low-context execution from `agents/BUILD_AND_TEST.md`: write full logs to `target/agent-maven-logs/`, inspect Maven reports, and return concise summaries instead of full logs.

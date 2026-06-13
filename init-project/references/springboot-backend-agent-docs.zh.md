@@ -103,6 +103,17 @@ agents/
 - Run tests: `mvn test`
 - Package: `mvn package`
 
+Maven 输出要低上下文处理：agent 直接执行 Maven 时，优先使用 `-B -ntp`，
+把完整 stdout/stderr 重定向到 `target/agent-maven-logs/`，只把 pass/fail、
+测试数量、首个 actionable failure、Checkstyle/Jacoco failure、报告路径和下一步
+命令返回给 LLM 上下文。没有 `maven-runner` subagent 时也必须这样做。
+
+```bash
+mkdir -p target/agent-maven-logs
+mvn -B -ntp clean verify > target/agent-maven-logs/clean-verify.log 2>&1
+grep -E "Tests run:|BUILD SUCCESS|BUILD FAILURE|Total time|ERROR|FAILURE" target/agent-maven-logs/clean-verify.log | tail -40
+```
+
 ## Change rules
 
 - Keep controllers thin; put business decisions in service/application layer.
@@ -370,7 +381,8 @@ Missing evidence:
 - `pubsub-specialist`：topic/config、payload、publish timing、retry/DLQ、idempotency。
 - `integration-specialist`：下游 client、外部系统、timeout/retry/error mapping。
 - `test-specialist`：JUnit 5、Mockito、Reactor/WebTestClient、JaCoCo、Checkstyle。
-- `maven-runner`：唯一默认允许执行 Maven 验证命令的角色，不编辑文件。
+- `maven-runner`：唯一默认允许执行 Maven 验证命令的角色，不编辑文件；负责
+  把完整 Maven 日志隔离到 `target/agent-maven-logs/`，只返回短摘要。
 
 每个 specialist 必须先读 `agents/SUBAGENTS.md` 和自己的
 `agents/subagents/*.md`，然后按 `agents/REFERENCES.md` 选择 focused

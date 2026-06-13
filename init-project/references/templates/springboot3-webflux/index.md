@@ -74,7 +74,7 @@ classes/topic hints, and test catalogs. Use this output to refine
 `CALL_CHAINS.md`, `ARCHITECTURE_NOTES.md`, `BUILD_AND_TEST.md`, and
 `TEMPLATE_NOTES.md`.
 
-For backend projects, the renderer also creates reference-first context:
+For backend projects that need deeper context, create reference-first docs:
 
 ```text
 agents/REFERENCES.md

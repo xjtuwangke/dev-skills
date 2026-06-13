@@ -138,6 +138,25 @@ Document:
 - Module-specific commands for multi-module projects.
 - Required environment variables or external services.
 - Commands that are expensive, flaky, or CI-only.
+- Low-context execution for agent-run Maven commands. Prefer `-B -ntp`, redirect
+  full logs to `target/agent-maven-logs/`, and return only pass/fail, test
+  counts, first actionable failures, Checkstyle/Jacoco failures, report paths,
+  and next commands. This is required when no Maven Runner subagent is available.
+
+Suggested no-subagent pattern:
+
+```bash
+mkdir -p target/agent-maven-logs
+./mvnw -B -ntp clean verify > target/agent-maven-logs/clean-verify.log 2>&1
+grep -E "Tests run:|BUILD SUCCESS|BUILD FAILURE|Total time|ERROR|FAILURE" target/agent-maven-logs/clean-verify.log | tail -40
+```
+
+If the command fails, inspect focused report files before reading the full log:
+
+- `target/surefire-reports/*.txt`
+- `target/checkstyle-result.xml`
+- `target/site/jacoco/jacoco.xml`
+- `tail -80 target/agent-maven-logs/clean-verify.log`
 
 ## CODE_STYLE.md Content
 
