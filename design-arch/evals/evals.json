@@ -1,0 +1,28 @@
+{
+  "skill_name": "design-arch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create an ADR for choosing between Kafka and SQS for our order event bus. We are on AWS, need to ship in two weeks, expect moderate throughput, and may need replay later.",
+      "expected_output": "Produces an ADR with context, decision, options, trade-off analysis, consequences, risks, action items, and revisit conditions.",
+      "files": [],
+      "assertions": [
+        "Uses ADR format.",
+        "Compares Kafka and SQS across constraints.",
+        "Makes a clear recommendation and explains trade-offs.",
+        "Includes consequences and revisit conditions."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this architecture proposal: we want to move all customer profile reads from Postgres to Redis because Redis is faster. What is missing before this can be accepted?",
+      "expected_output": "Reviews the proposal, identifies missing requirements and risks, and separates blocking issues from suggestions.",
+      "files": [],
+      "assertions": [
+        "Does not accept speed as the only decision criterion.",
+        "Flags correctness, durability, cache invalidation, consistency, and operational risks.",
+        "Uses an architecture review structure."
+      ]
+    }
+  ]
+}

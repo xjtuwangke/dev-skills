@@ -1,0 +1,29 @@
+{
+  "skill_name": "design-tech",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a tech design for adding a refund workflow to an existing order service. Include API changes, data model, state transitions, failure paths, testing, rollout, and rollback.",
+      "expected_output": "Produces a complete technical design document with behavior, implementation, testing, and rollout details.",
+      "files": [],
+      "assertions": [
+        "Includes goals and non-goals.",
+        "Includes API and data model changes.",
+        "Includes state transitions or workflow behavior.",
+        "Includes testing, rollout, rollback, risks, and open questions."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Design the call flow and state machine for an approval system where manager approval is followed by finance approval, with rejection, timeout, and retry behavior.",
+      "expected_output": "Focuses on flow design, including sequence/call flow and state machine behavior with failure paths.",
+      "files": [],
+      "assertions": [
+        "Includes a sequence or call flow.",
+        "Includes a state machine or transition table.",
+        "Covers rejection, timeout, and retry behavior.",
+        "States assumptions and open questions."
+      ]
+    }
+  ]
+}
