@@ -1,0 +1,50 @@
+{
+  "skill_name": "manage-memory",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Initialize memory in this workspace. I want MEMORY.md, memory/, and TASKS.md, but keep it lightweight and ask me about unknown project shorthand before inventing meanings.",
+      "expected_output": "Creates or proposes the correct memory/task file structure, uses MEMORY.md rather than CLAUDE.md, and asks for clarification instead of guessing.",
+      "files": [
+        "evals/fixtures/empty-workspace/README.md"
+      ],
+      "assertions": [
+        "Creates MEMORY.md with People, Terms, Projects, and Preferences sections.",
+        "Creates memory/glossary.md plus memory/people, memory/projects, and memory/context directories.",
+        "Creates TASKS.md with Active, Waiting On, Someday, and Done sections.",
+        "Does not create CLAUDE.md."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Remember that PSR means Pipeline Status Report, Phoenix is our active database migration, and Todd is Todd Martinez from Finance. Then add a task to ask Todd for the Phoenix PSR by Friday.",
+      "expected_output": "Stores terms, project, and person in the right memory locations and adds a TASKS.md item with decoded context.",
+      "files": [
+        "evals/fixtures/empty-workspace/README.md"
+      ],
+      "assertions": [
+        "Adds PSR to memory/glossary.md.",
+        "Creates memory/people/todd-martinez.md or an equivalent lowercase kebab-case person profile.",
+        "Creates memory/projects/project-phoenix.md or an equivalent lowercase kebab-case project profile.",
+        "Adds an Active TASKS.md item for asking Todd about the Phoenix PSR."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run an update: check TASKS.md for stale items, find unknown acronyms in active tasks, and move anything no longer active out of MEMORY.md but keep the details in memory/.",
+      "expected_output": "Uses the update workflow, reads current state first, triages tasks, identifies memory gaps, and demotes stale hot-cache entries without deleting durable history.",
+      "files": [
+        "evals/fixtures/stale-memory/MEMORY.md",
+        "evals/fixtures/stale-memory/TASKS.md",
+        "evals/fixtures/stale-memory/memory/glossary.md",
+        "evals/fixtures/stale-memory/memory/projects/project-horizon.md"
+      ],
+      "assertions": [
+        "Reads existing MEMORY.md and TASKS.md before proposing changes.",
+        "Flags the unknown acronym QBR for clarification instead of inventing a meaning.",
+        "Suggests demoting stale Horizon hot-cache context from MEMORY.md while preserving memory/projects/project-horizon.md.",
+        "Does not delete durable memory files without confirmation."
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ changes.
 | Skill | Purpose | Status |
 | --- | --- | --- |
 | `init-project` | Initialize an existing code project by generating `AGENTS.md` and supporting `agents/*.md` reference files | active |
+| `manage-memory` | Manage workspace memory and task tracking with `MEMORY.md`, `memory/`, and `TASKS.md` | draft |
 
 ## init-project
 
@@ -30,6 +31,20 @@ Supported template facets:
 The skill uses progressive disclosure: it loads the common workflow first, then
 only reads template references and scripts after a project facet is detected or
 explicitly requested.
+
+## manage-memory
+
+`manage-memory` consolidates a workspace memory system and a Markdown task list
+into one skill. It uses progressive disclosure: the root `SKILL.md` routes the
+agent to scenario-specific references for initialization, memory lookup/update,
+task management, routine refresh, comprehensive scans, and connector usage.
+
+This skill is sourced from and adapted from Anthropic's
+[`knowledge-work-plugins`](https://github.com/anthropics/knowledge-work-plugins)
+productivity skills: `memory-management`, `start`, `update`, and
+`task-management`. The local version changes the hot-cache file from
+`CLAUDE.md` to `MEMORY.md` and merges the four workflows into one skill with
+progressively loaded reference files.
 
 ## Useful Commands
 
@@ -65,6 +80,10 @@ init-project/
   evals/
   references/
   scripts/
+manage-memory/
+  SKILL.md
+  evals/
+  references/
 ```
 
 The `init-project/evals/fixtures/springboot-commerce-webflux` fixture is a
@@ -77,5 +96,6 @@ Before committing:
 
 ```bash
 python3 init-project/scripts/validate_skill.py
+python3 -m json.tool manage-memory/evals/evals.json >/dev/null
 git diff --check
 ```
