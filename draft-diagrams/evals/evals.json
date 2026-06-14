@@ -1,0 +1,29 @@
+{
+  "skill_name": "draft-diagrams",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Draft a Markdown-native technical design diagram for a checkout request flow. It should show the browser, checkout API, inventory service, payment provider, orders database, and order events topic. Include the happy path and payment declined branch.",
+      "expected_output": "A Mermaid sequence diagram with participants, ordered messages, and an alt/else branch for approved versus declined payment.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Make a UML class diagram for a small library domain with Patron, Loan, BookCopy, BookTitle, and Librarian. Show ownership/relationships and a few important fields or methods. It needs to work in GitHub Markdown.",
+      "expected_output": "A Mermaid classDiagram using appropriate relationships, multiplicity labels, and concise class members.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need a terminal-friendly diagram of a web app calling an API service, the API writing to Postgres, and a worker consuming jobs from a queue. Use PlantUML ASCII style and include the command to generate Unicode text output.",
+      "expected_output": "PlantUML source for a compact component or sequence diagram plus the plantuml -utxt command and expected .utxt output note.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Update this existing Mermaid flowchart so the API also publishes an OrderCreated event to Kafka after writing to the database. Preserve the current Mermaid style and keep it suitable for GitHub Markdown.",
+      "expected_output": "A modified Mermaid flowchart that preserves existing style, adds Kafka/event publishing, and avoids unrelated rewrites.",
+      "files": []
+    }
+  ]
+}

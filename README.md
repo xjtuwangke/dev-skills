@@ -13,6 +13,7 @@ changes.
 | --- | --- | --- |
 | `init-project` | Initialize an existing code project by generating `AGENTS.md` and supporting `agents/*.md` reference files | active |
 | `manage-memory` | Manage workspace memory and task tracking with `MEMORY.md`, `memory/`, and `TASKS.md` | draft |
+| `draft-diagrams` | Draft, add, and modify Markdown-native Mermaid technical design diagrams and PlantUML ASCII diagrams with progressive references by diagram type | draft |
 
 ## init-project
 
@@ -45,6 +46,21 @@ productivity skills: `memory-management`, `start`, `update`, and
 `task-management`. The local version changes the hot-cache file from
 `CLAUDE.md` to `MEMORY.md` and merges the four workflows into one skill with
 progressively loaded reference files.
+
+## draft-diagrams
+
+`draft-diagrams` drafts, adds, and modifies technical design diagrams as
+editable text source. It defaults to Mermaid for Markdown-native diagrams and
+uses PlantUML text mode for ASCII or Unicode terminal-friendly diagrams. The
+skill uses progressive disclosure by loading only the reference for the
+requested diagram family: flowchart, sequence, UML class, ERD,
+architecture/C4, state, PlantUML ASCII, or rendering/export guidance.
+
+This skill is sourced from and adapted from
+[`softaworks/agent-toolkit@mermaid-diagrams`](https://skills.sh/softaworks/agent-toolkit/mermaid-diagrams)
+and
+[`github/awesome-copilot@plantuml-ascii`](https://skills.sh/github/awesome-copilot/plantuml-ascii).
+See `draft-diagrams/README.md` for source attribution details.
 
 ## Useful Commands
 
@@ -84,6 +100,11 @@ manage-memory/
   SKILL.md
   evals/
   references/
+draft-diagrams/
+  SKILL.md
+  README.md
+  evals/
+  references/
 ```
 
 The `init-project/evals/fixtures/springboot-commerce-webflux` fixture is a
@@ -97,5 +118,6 @@ Before committing:
 ```bash
 python3 init-project/scripts/validate_skill.py
 python3 -m json.tool manage-memory/evals/evals.json >/dev/null
+python3 -m json.tool draft-diagrams/evals/evals.json >/dev/null
 git diff --check
 ```
