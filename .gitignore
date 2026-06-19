@@ -4,3 +4,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 target/
+.tmp/
+launchd/com.kwang.codex-generated-images-nas-sync.plist
+tools/codex-generated-images-nas-sync.sh

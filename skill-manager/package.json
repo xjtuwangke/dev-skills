@@ -1,0 +1,17 @@
+{
+  "name": "skill-manager",
+  "version": "0.1.0",
+  "description": "Platform-agnostic agent skill installer and updater",
+  "type": "module",
+  "bin": {
+    "skill-manager": "./bin/skill-manager.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "smoke": "node bin/skill-manager.js --help && node bin/skill-manager.js --json doctor"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
