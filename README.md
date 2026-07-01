@@ -16,6 +16,7 @@ changes.
 | `draft-diagrams` | Draft, add, and modify Markdown-native Mermaid technical design diagrams and PlantUML ASCII diagrams with progressive references by diagram type | draft |
 | `design-arch` | Create and review ADRs, architecture decisions, and trade-off analysis | draft |
 | `design-tech` | Create and review technical design documents for systems, services, APIs, workflows, and implementation plans | draft |
+| `tame-pwsh` | Run, write, and debug Windows PowerShell and PowerShell 7 commands reliably | draft |
 
 ## init-project
 
@@ -89,6 +90,14 @@ This skill is sourced from and adapted from Anthropic's
 expands it into a technical-design workflow with progressive references for
 system design, behavior flows, implementation planning, and design review.
 
+## tame-pwsh
+
+`tame-pwsh` merges PowerShell command reliability guidance for Windows
+PowerShell 5.1 and PowerShell 7+. It helps agents avoid Bash-vs-PowerShell
+syntax mistakes, handle paths and environment variables correctly, preserve
+logs across encoding differences, and recover from common shell failures by
+category.
+
 ## Useful Commands
 
 Validate the skill:
@@ -140,6 +149,8 @@ design-tech/
   SKILL.md
   evals/
   references/
+tame-pwsh/
+  SKILL.md
 ```
 
 The `init-project/evals/fixtures/springboot-commerce-webflux` fixture is a
